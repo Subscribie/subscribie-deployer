@@ -156,7 +156,7 @@ def deploy():
             with open(dstDir + '/' + webaddress + '.ini', 'w') as f:
                 f.write(contents)
 
-    login_url = ''.join(['https://', webaddress, '/login/', login_token])
+    login_url = ''.join(['https://', webaddress, '/auth/login/', login_token])
 
     return login_url
 
