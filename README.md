@@ -20,9 +20,6 @@ Responsible for building new subscribie sites.
 `. venv/bin/activate`
 `pip install -r requirements.txt`
 
-- Copy config.py.example to config.py
-- Remove COUCHDB settings if not using it
-- Set JAMLA_DEPLOY_URL to this app 
 - Copy .env.example to .env
   - Edit SITES_DIRECTORY to directory where to deploy sites to
 
