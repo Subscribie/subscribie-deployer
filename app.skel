@@ -1,0 +1,13 @@
+[uwsgi]
+strict = true
+# %d absolute path of the directory containing the configuration file
+chdir = %d/subscribie
+virtualenv = %d/subscribie/venv
+wsgi-file = %d/subscribie/subscribie.wsgi
+master = true
+vacuum = true
+# %n the filename without extension
+# NOTE filename must be uniqe (socket must be 
+# uniq per app so we use the <webaddress>.ini
+socket = /tmp/sockets/%n.sock
+#subscribe-to = /tmp/sock2:three.example.com

@@ -1,0 +1,5 @@
+Flask>=1,<2
+GitPython
+pyyaml
+flask_sqlalchemy
+flask_migrate
