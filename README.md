@@ -14,9 +14,17 @@ Responsible for building new subscribie sites.
 
 ## Configuration
 
+#### Create virtual env & install requirements: 
+
+`virtualenv -p python3 venv`
+`. venv/bin/activate`
+`pip install -r requirements.txt`
+
 - Copy config.py.example to config.py
 - Remove COUCHDB settings if not using it
 - Set JAMLA_DEPLOY_URL to this app 
+
+For running locally in development: `./run.sh`
 
 
 ### UWSGI notes
