@@ -1,13 +1,10 @@
 # Builder module config
-BUILDER_DEPLOY_WEB_HOST="192.168.1.1"
-BUILDER_SUB_AUTH_ID="123"                                                        
-BUILDER_SUB_AUTH_PASSWORD="secret"                                     
 JAMLA_DEPLOY_URL="http://127.0.0.1:5001/"
 #DISABLE_LEGACY_BUILD_METHOD=True # Disables legacy apache deploy method
-COUCHDB_ENABLED=True
-COUCHDB_SCHEME="http://"
-COUCHDB_IP="127.0.0.1"
-COUCHDB_USER="admin"
-COUCHDB_PASS="password"
-COUCHDB_PORT=5984
-COUCHDB_DBNAME="databasename"
+#COUCHDB_ENABLED=True
+#COUCHDB_SCHEME="http://"
+#COUCHDB_IP="127.0.0.1"
+#COUCHDB_USER="admin"
+#COUCHDB_PASS="password"
+#COUCHDB_PORT=5984
+#COUCHDB_DBNAME="databasename"
