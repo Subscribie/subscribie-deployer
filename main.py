@@ -96,7 +96,7 @@ def deploy():
             con.text_factory = str
             cur = con.cursor()                                                   
             now = datetime.datetime.now()
-            login_token = str(urlsafe_b64encode(os.urandom(24)))
+            login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
             cur.execute("INSERT INTO user (email, created_at, active, login_token) VALUES (?,?,?,?)", (email, now, 1, login_token,)) 
             con.commit()                                                         
             con.close()
