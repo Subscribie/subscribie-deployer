@@ -23,6 +23,8 @@ Responsible for building new subscribie sites.
 - Copy config.py.example to config.py
 - Remove COUCHDB settings if not using it
 - Set JAMLA_DEPLOY_URL to this app 
+- Copy .env.example to .env
+  - Edit SITES_DIRECTORY to directory where to deploy sites to
 
 For running locally in development: `./run.sh`
 
