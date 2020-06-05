@@ -12,7 +12,7 @@ from pathlib import Path
 from flask_migrate import upgrade
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-
+from uuid import uuid4
 
 app = Flask(__name__)
 
@@ -78,7 +78,9 @@ def deploy():
     email = payload['users'][0]
     now = datetime.datetime.now()
     login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
-    cur.execute("INSERT INTO user (email, created_at, active, login_token) VALUES (?,?,?,?)", (email, now, 1, login_token,)) 
+    cur.execute("INSERT INTO user (email, created_at, active, login_token) VALUES (?,?,?,?)", (email, now, 1, login_token,))
+    cur.execute("INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)")
+    cur.execute("INSERT INTO module (name, src) VALUES ('module_seo_page_title', 'https://github.com/Subscribie/module-seo-page-title.git')")
     con.commit()                                                         
     con.close()
 
@@ -92,7 +94,36 @@ def deploy():
     con.commit()                                                         
     con.close()
 
-    # TODO Seed the item table
+    # Seed the item table
+    con = sqlite3.connect(dstDir + 'data.db')
+    con.text_factory = str
+    cur = con.cursor()                                                   
+    now = datetime.datetime.now()
+    title = payload['items'][0]['title']
+    archived = 0
+    uuid = str(uuid4())
+    monthly_price = payload['items'][0]['monthly_price']
+    sell_price = payload['items'][0]['sell_price']
+
+    cur.execute("INSERT INTO item (created_at, archived, uuid, title, monthly_price, sell_price) VALUES (?,?,?,?,?,?)", (now, archived, uuid, title, monthly_price, sell_price))
+    if monthly_price == 0:
+        requires_subscription = 0
+    else:
+        requires_subscription = 1
+
+    if sell_price == 0:
+        requires_instant_payment = 0
+    else:
+        requires_instant_payment = 1
+    
+    # Item requirements
+    cur.execute('''INSERT INTO item_requirements (id , created_at, item_id, 
+                    instant_payment, subscription) 
+                 VALUES ( 1, ?, 1, ?, ?)
+                 ''', (now, requires_instant_payment, requires_subscription))
+    # Item selling points
+    con.commit()                                                         
+    con.close()
     
     # Set JAMLA path, STATIC_FOLDER, and TEMPLATE_FOLDER
     jamlaPath = dstDir + 'jamla.yaml'
@@ -120,6 +151,12 @@ def deploy():
     ])
     subprocess.call('export LC_ALL=C.UTF-8; export LANG=C.UTF-8; subscribie setconfig ' + settings, cwd = cliWorkingDir\
                       , shell=True)
+
+    with open(dstDir + 'subscribie/instance/config.py', 'a') as fp:
+        modules_path = dstDir + 'subscribie/modules/'
+        fp.write('MODULES_PATH="' + modules_path + '"' + "\n")
+        fp.write('THEME_SRC="' + 'https://github.com/Subscribie/theme-jesmond.git' + '"' + "\n")
+        fp.write('THEME_NAME="' + 'jesmond' + '"' + "\n")
 
     # Begin uwsgi vassal config creation
     # Open application skeleton (app.skel) file and append 
