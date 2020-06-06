@@ -94,6 +94,15 @@ def deploy():
     con.commit()                                                         
     con.close()
 
+    # Seed integration table
+    con = sqlite3.connect(dstDir + 'data.db')
+    con.text_factory = str
+    cur = con.cursor()                                                   
+    cur.execute("INSERT INTO integration (id) VALUES(1)") 
+    con.commit()                                                         
+    con.close()
+
+
     # Seed the item table
     con = sqlite3.connect(dstDir + 'data.db')
     con.text_factory = str
@@ -122,17 +131,26 @@ def deploy():
                  VALUES ( 1, ?, 1, ?, ?)
                  ''', (now, requires_instant_payment, requires_subscription))
     # Item selling points
+    selling_points = payload['items'][0]['selling_points']
+
+    points = []
+
+    for i, point in enumerate(selling_points):
+        now = datetime.datetime.now()
+        points.append((i, now, selling_points[i], 1))
+
+    cur.executemany('''INSERT INTO item_selling_points 
+                    (id, created_at, point, item_id)
+                    VALUES (?, ?, ?, ?)''', points)
     con.commit()                                                         
     con.close()
     
     # Set JAMLA path, STATIC_FOLDER, and TEMPLATE_FOLDER
-    jamlaPath = dstDir + 'jamla.yaml'
     cliWorkingDir = ''.join([dstDir, 'subscribie'])
     theme_folder = ''.join([dstDir, 'subscribie', '/themes/'])
     static_folder = ''.join([theme_folder, 'theme-jesmond/static/'])
 
     settings = ' '.join([
-        '--JAMLA_PATH', jamlaPath,
         '--TEMPLATE_FOLDER', theme_folder,
         '--STATIC_FOLDER', static_folder, 
         '--UPLOADED_IMAGES_DEST', dstDir + 'static/',
