@@ -75,7 +75,7 @@ def deploy():
     con = sqlite3.connect(dstDir + 'data.db')
     con.text_factory = str
     cur = con.cursor()
-    email = payload['users'][0]
+    email = payload['users'][0].lower()
     now = datetime.datetime.now()
     login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
     cur.execute("INSERT INTO user (email, created_at, active, login_token) VALUES (?,?,?,?)", (email, now, 1, login_token,))
