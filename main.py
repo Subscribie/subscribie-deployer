@@ -60,6 +60,15 @@ def deploy():
         subprocess.call(f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}", shell=True)
 
+        uploadImgDst = dstDir + 'subscribie/static/'
+        subprocess.call(f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}", shell=True)
+
+        successRedirectUrl = 'https://' + webaddress + '/complete_mandate'
+        subprocess.call(f"dotenv -f {envFileDst} set SUCCESS_REDIRECT_URL {successRedirectUrl}", shell=True)
+
+        thankyouUrl = 'https://' + webaddress + '/thankyou'
+        subprocess.call(f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}", shell=True)
+
     except Exception as e:
         print("Did not clone subscribie for some reason")
         print(e.message, e.args)
@@ -70,6 +79,7 @@ def deploy():
     except Exception as e:
         print("Didn't clone subscriber matching service")
         print(e.message, e.args)
+
     # Create virtualenv & install subscribie requirements to it
     print("Creating virtualenv")
     call = subprocess.call('export LC_ALL=C.UTF-8; export LANG=C.UTF-8; virtualenv -p python3 venv', cwd= ''.join([dstDir, 'subscribie']), shell=True)
