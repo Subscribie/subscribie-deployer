@@ -44,12 +44,21 @@ def deploy():
     try:
         git.Git(dstDir).clone("https://github.com/Subscribie/subscribie")
         repo = git.Repo(dstDir + 'subscribie')
-        repo.git.checkout('167-remove-jamla-yaml-based-config')
-        # Generate config.py file
-        response = urlopen('https://raw.githubusercontent.com/Subscribie/subscribie/master/subscribie/config.py.example')
-        configfile = response.read()
-        with open(dstDir + 'subscribie' + '/instance/config.py', 'wb') as fh:
-            fh.write(configfile)
+
+        # Create .env file from .env.example
+        envFileSrc = Path(dstDir + '/subscribie/.env.example')
+        envFileDst = Path(dstDir + '/subscribie/.env')
+        shutil.copy(envFileSrc, envFileDst)
+
+        # Update .env values for mail
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_SERVER {app.config['MAIL_SERVER']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_PORT {app.config['MAIL_PORT']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_PORT {app.config['MAIL_PORT']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_USERNAME {app.config['MAIL_USERNAME']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_PASSWORD {app.config['MAIL_PASSWORD']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_DEFAULT_SENDER {app.config['EMAIL_LOGIN_FROM']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}", shell=True)
 
     except Exception as e:
         print("Did not clone subscribie for some reason")
@@ -146,37 +155,6 @@ def deploy():
     con.commit()                                                         
     con.close()
     
-    # Set JAMLA path, STATIC_FOLDER, and TEMPLATE_FOLDER
-    cliWorkingDir = ''.join([dstDir, 'subscribie'])
-    theme_folder = ''.join([dstDir, 'subscribie', '/themes/'])
-    static_folder = ''.join([theme_folder, 'theme-jesmond/static/'])
-
-    settings = ' '.join([
-        '--TEMPLATE_FOLDER', theme_folder,
-        '--STATIC_FOLDER', static_folder, 
-        '--UPLOADED_IMAGES_DEST', dstDir + 'static/',
-        '--DB_FULL_PATH', dstDir + 'data.db',
-        '--SUCCESS_REDIRECT_URL', 'https://' + webaddress + '/complete_mandate',
-        '--THANKYOU_URL', 'https://' + webaddress + '/thankyou',
-        '--MAIL_SERVER', app.config['MAIL_SERVER'],
-        '--MAIL_PORT', "25",
-        '--MAIL_DEFAULT_SENDER', app.config['EMAIL_LOGIN_FROM'],
-        '--MAIL_USERNAME', app.config['MAIL_USERNAME'],
-        '--MAIL_PASSWORD', ''.join(['"', app.config['MAIL_PASSWORD'], '"']),
-        '--MAIL_USE_TLS' , app.config['MAIL_USE_TLS'],
-        '--EMAIL_LOGIN_FROM', app.config['EMAIL_LOGIN_FROM'],
-        '--GOCARDLESS_CLIENT_ID', app.config['DEPLOY_GOCARDLESS_CLIENT_ID'],
-        '--GOCARDLESS_CLIENT_SECRET', app.config['DEPLOY_GOCARDLESS_CLIENT_SECRET'],
-    ])
-    subprocess.call('export LC_ALL=C.UTF-8; export LANG=C.UTF-8; subscribie setconfig ' + settings, cwd = cliWorkingDir\
-                      , shell=True)
-
-    with open(dstDir + 'subscribie/instance/config.py', 'a') as fp:
-        modules_path = dstDir + 'subscribie/modules/'
-        fp.write('MODULES_PATH="' + modules_path + '"' + "\n")
-        fp.write('THEME_SRC="' + 'https://github.com/Subscribie/theme-jesmond.git' + '"' + "\n")
-        fp.write('THEME_NAME="' + 'jesmond' + '"' + "\n")
-
     # Begin uwsgi vassal config creation
     # Open application skeleton (app.skel) file and append 
     # "subscribe-to = <website-hostname>" config entry for the new 
