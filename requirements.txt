@@ -3,4 +3,4 @@ GitPython
 pyyaml
 flask_sqlalchemy
 flask_migrate
-python-dotenv==0.13.0
+python-dotenv[cli]==0.13.0
