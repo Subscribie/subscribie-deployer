@@ -2,6 +2,7 @@ import os, errno, shutil, re
 from urllib.request import urlopen
 import subprocess
 from flask import Flask, request, redirect, url_for
+from werkzeug.security import generate_password_hash
 import git
 import json
 import sqlite3
@@ -90,14 +91,15 @@ def deploy():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + dstDir + 'data.db'
     upgrade(directory=dstDir + 'subscribie/migrations')
 
-    # Seed users table with site owners email address so they can login
+    # Seed users table with site owners email address & password so can login
     con = sqlite3.connect(dstDir + 'data.db')
     con.text_factory = str
     cur = con.cursor()
     email = payload['users'][0].lower()
     now = datetime.datetime.now()
     login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
-    cur.execute("INSERT INTO user (email, created_at, active, login_token) VALUES (?,?,?,?)", (email, now, 1, login_token,))
+    password = generate_password_hash(payload['password'])
+    cur.execute("INSERT INTO user (email, password, created_at, active, login_token) VALUES (?,?,?,?,?)", (email, password, now, 1, login_token,))
     cur.execute("INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)")
     cur.execute("INSERT INTO module (name, src) VALUES ('module_seo_page_title', 'https://github.com/Subscribie/module-seo-page-title.git')")
     cur.execute("INSERT INTO module (name, src) VALUES ('module_pages', 'https://github.com/Subscribie/module-pages.git')")
