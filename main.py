@@ -74,12 +74,6 @@ def deploy():
         print("Did not clone subscribie for some reason")
         print(e.message, e.args)
         pass
-    # Clone Subscriber Matching Service
-    try:
-        git.Git(dstDir).clone('https://github.com/Subscribie/subscription-management-software')
-    except Exception as e:
-        print("Didn't clone subscriber matching service")
-        print(e.message, e.args)
 
     # Create virtualenv & install subscribie requirements to it
     print("Creating virtualenv")
