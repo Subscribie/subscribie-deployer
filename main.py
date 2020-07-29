@@ -127,11 +127,23 @@ def deploy():
     title = payload['items'][0]['title']
     archived = 0
     uuid = str(uuid4())
-    monthly_price = payload['items'][0]['monthly_price']
+    interval_amount = payload['items'][0]['interval_amount']
+    interval_unit = payload['items'][0]['interval_unit']
+    if 'weekly' in interval_unit or 'monthly' in interval_unit or \
+       'yearly' in interval_unit:
+           pass
+    else:
+        interval_unit = 'monthly'
     sell_price = payload['items'][0]['sell_price']
 
-    cur.execute("INSERT INTO item (created_at, archived, uuid, title, monthly_price, sell_price) VALUES (?,?,?,?,?,?)", (now, archived, uuid, title, monthly_price, sell_price))
-    if monthly_price == 0:
+    cur.execute("""INSERT INTO item 
+                (created_at, archived, uuid, title, sell_price, interval_amount, 
+                interval_unit) 
+                VALUES (?,?,?,?,?,?,?)""", 
+                (now, archived, uuid, title, sell_price, interval_amount,
+                interval_unit))
+
+    if interval_amount == 0:
         requires_subscription = 0
     else:
         requires_subscription = 1
