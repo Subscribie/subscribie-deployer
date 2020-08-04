@@ -119,24 +119,24 @@ def deploy():
     con.close()
 
 
-    # Seed the item table
+    # Seed the plan table
     con = sqlite3.connect(dstDir + 'data.db')
     con.text_factory = str
     cur = con.cursor()                                                   
     now = datetime.datetime.now()
-    title = payload['items'][0]['title']
+    title = payload['plans'][0]['title']
     archived = 0
     uuid = str(uuid4())
-    interval_amount = payload['items'][0]['interval_amount']
-    interval_unit = payload['items'][0]['interval_unit']
+    interval_amount = payload['plans'][0]['interval_amount']
+    interval_unit = payload['plans'][0]['interval_unit']
     if 'weekly' in interval_unit or 'monthly' in interval_unit or \
        'yearly' in interval_unit:
            pass
     else:
         interval_unit = 'monthly'
-    sell_price = payload['items'][0]['sell_price']
+    sell_price = payload['plans'][0]['sell_price']
 
-    cur.execute("""INSERT INTO item 
+    cur.execute("""INSERT INTO plan 
                 (created_at, archived, uuid, title, sell_price, interval_amount, 
                 interval_unit) 
                 VALUES (?,?,?,?,?,?,?)""", 
@@ -154,12 +154,12 @@ def deploy():
         requires_instant_payment = 1
     
     # Item requirements
-    cur.execute('''INSERT INTO item_requirements (id , created_at, item_id, 
+    cur.execute('''INSERT INTO plan_requirements (id , created_at, plan_id, 
                     instant_payment, subscription) 
                  VALUES ( 1, ?, 1, ?, ?)
                  ''', (now, requires_instant_payment, requires_subscription))
     # Item selling points
-    selling_points = payload['items'][0]['selling_points']
+    selling_points = payload['plans'][0]['selling_points']
 
     points = []
 
@@ -167,8 +167,8 @@ def deploy():
         now = datetime.datetime.now()
         points.append((i, now, selling_points[i], 1))
 
-    cur.executemany('''INSERT INTO item_selling_points 
-                    (id, created_at, point, item_id)
+    cur.executemany('''INSERT INTO plan_selling_points 
+                    (id, created_at, point, plan_id)
                     VALUES (?, ?, ?, ?)''', points)
     con.commit()                                                         
     con.close()
