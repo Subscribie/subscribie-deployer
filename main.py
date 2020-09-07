@@ -51,6 +51,17 @@ def deploy():
         envFileDst = Path(dstDir + '/subscribie/.env')
         shutil.copy(envFileSrc, envFileDst)
 
+        # Generate RSA keys for jwt auth
+        subprocess.call(f'ssh-keygen -t rsa -N "" -f {dstDir}id_rsa', shell=True)
+
+        # Update .env values for public & private keys
+        privateKeyDst = dstDir + 'id_rsa'
+        subprocess.call(f"dotenv -f {envFileDst} set PRIVATE_KEY {privateKeyDst}", shell=True)
+
+        publicKeyDst = dstDir + 'id_rsa.pub'
+        subprocess.call(f"dotenv -f {envFileDst} set PUBLIC_KEY {publicKeyDst}", shell=True)
+
+
         # Update .env values for mail
         subprocess.call(f"dotenv -f {envFileDst} set MAIL_SERVER {app.config['MAIL_SERVER']}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set MAIL_PORT {app.config['MAIL_PORT']}", shell=True)
