@@ -73,7 +73,9 @@ def deploy():
         subprocess.call(f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}", shell=True)
 
         uploadImgDst = dstDir + 'subscribie/static/'
+        uploadedFilesDst = dstDir + 'subscribie/uploads/'
         subprocess.call(f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set UPLOADED_FILES_DEST {uploadedFilesDst}", shell=True)
 
         successRedirectUrl = 'https://' + webaddress + '/complete_mandate'
         subprocess.call(f"dotenv -f {envFileDst} set SUCCESS_REDIRECT_URL {successRedirectUrl}", shell=True)
