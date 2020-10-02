@@ -61,6 +61,9 @@ def deploy():
         publicKeyDst = dstDir + 'id_rsa.pub'
         subprocess.call(f"dotenv -f {envFileDst} set PUBLIC_KEY {publicKeyDst}", shell=True)
 
+        # Set SERVER_NAME in .env
+        subprocess.call(f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True)
+
         # Update .env for stripe
         subprocess.call(f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}", shell=True)
