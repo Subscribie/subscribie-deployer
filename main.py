@@ -119,7 +119,6 @@ def deploy():
     cur.execute("INSERT INTO user (email, password, created_at, active, login_token) VALUES (?,?,?,?,?)", (email, password, now, 1, login_token,))
     cur.execute("INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)")
     cur.execute("INSERT INTO module (name, src) VALUES ('module_seo_page_title', 'https://github.com/Subscribie/module-seo-page-title.git')")
-    cur.execute("INSERT INTO module (name, src) VALUES ('module_pages', 'https://github.com/Subscribie/module-pages.git')")
     cur.execute("INSERT INTO module (name, src) VALUES ('module_style_shop', 'https://github.com/Subscribie/module-style-shop.git')")
     con.commit()                                                         
     con.close()
