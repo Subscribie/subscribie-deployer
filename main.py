@@ -64,6 +64,10 @@ def deploy():
         # Set SERVER_NAME in .env
         subprocess.call(f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True)
 
+        # Set Stripe keys for Stripe connect
+        subprocess.call(f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}", shell=True)
+        subprocess.call(f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}", shell=True)
+
         # Update .env for stripe
         subprocess.call(f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}", shell=True)
