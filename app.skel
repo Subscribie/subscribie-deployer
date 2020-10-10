@@ -10,4 +10,4 @@ vacuum = true
 # NOTE filename must be uniqe (socket must be 
 # uniq per app so we use the <webaddress>.ini
 socket = /tmp/sockets/%n.sock
-#subscribe-to = /tmp/sock2:three.example.com
+log-format = %(host) - %(addr) - %(user) [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) "%(referer)" "%(uagent)"
