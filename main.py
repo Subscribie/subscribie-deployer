@@ -82,8 +82,8 @@ def deploy():
         subprocess.call(f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}", shell=True)
 
-        uploadImgDst = dstDir + 'subscribie/static/'
-        uploadedFilesDst = dstDir + 'subscribie/uploads/'
+        uploadImgDst = dstDir + 'subscribie/subscribie/static/'
+        uploadedFilesDst = dstDir + 'subscribie/subscribie/uploads/'
         subprocess.call(f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}", shell=True)
         subprocess.call(f"dotenv -f {envFileDst} set UPLOADED_FILES_DEST {uploadedFilesDst}", shell=True)
 
