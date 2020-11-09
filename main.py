@@ -89,7 +89,6 @@ def deploy():
             f"dotenv -f {envFileDst} set STRIPE_LIVE_PUBLISHABLE_KEY {app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}",
             shell=True,
         )
-
         # Set Stripe keys for Stripe connect test mode
         subprocess.call(
             f"dotenv -f {envFileDst} set STRIPE_TEST_SECRET_KEY {app.config['STRIPE_TEST_SECRET_KEY']}",
@@ -155,6 +154,8 @@ def deploy():
         subprocess.call(
             f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}", shell=True
         )
+    except KeyError as e:
+        print(f"KeyError missing config? {e}")
 
     except Exception as e:
         print("Did not clone subscribie for some reason")
@@ -274,9 +275,9 @@ def deploy():
 
     points = []
 
-    for i in enumerate(selling_points):
+    for index, selling_point in enumerate(selling_points):
         now = datetime.datetime.now()
-        points.append((i, now, selling_points[i], 1))
+        points.append((index, now, selling_point, 1))
 
     cur.executemany(
         """INSERT INTO plan_selling_points 
