@@ -69,23 +69,23 @@ def deploy():
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
         )
 
-        # Set Stripe keys for Stripe connect
+        # Set Stripe keys for Stripe connect live mode
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_LIVE_PUBLISHABLE_KEY {app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}",
             shell=True,
         )
 
-        # Update .env for stripe
+        # Set Stripe keys for Stripe connect test mode
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_TEST_SECRET_KEY {app.config['STRIPE_TEST_SECRET_KEY']}",
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_TEST_PUBLISHABLE_KEY {app.config['STRIPE_TEST_PUBLISHABLE_KEY']}",
             shell=True,
         )
 
