@@ -69,6 +69,13 @@ def deploy():
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
         )
 
+
+        # Set HONEYCOMB_API_KEY connect env settings
+        subprocess.call(
+            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",
+            shell=True,
+        )
+
         # Set Stripe pre-stripe connect env settings
         subprocess.call(
             f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}",
