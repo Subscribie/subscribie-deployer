@@ -69,7 +69,6 @@ def deploy():
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
         )
 
-
         # Set HONEYCOMB_API_KEY connect env settings
         subprocess.call(
             f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",
@@ -299,11 +298,17 @@ def deploy():
     # Open application skeleton (app.skel) file and append
     # "subscribe-to = <website-hostname>" config entry for the new
     # sites webaddress so that uwsgi's fastrouter can route the hostname.
+    # Also add cron2 = minute=-1 curl -L <webaddress>/admin/announce-stripe-connect
+    # So that site will announce its stipe connect account id
     curDir = os.path.dirname(os.path.realpath(__file__))
     with open(curDir + "/" + "app.skel") as f:
         contents = f.read()
         # Append uwsgi's subscribe-to line with hostname of new site:
         contents += "\nsubscribe-to = /tmp/sock2:" + webaddress + "\n"
+        contents += (
+            contents
+            + f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
+        )
         # Writeout <webaddress>.ini config to file. uwsgi watches for .ini files
         # uwsgi will automatically detect this .ini file and start
         # routing requests to the site
