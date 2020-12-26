@@ -1,19 +1,23 @@
-import os, errno, shutil, re
-from urllib.request import urlopen
+import os
+import errno
+import shutil
+import re
 import subprocess
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request
 from werkzeug.security import generate_password_hash
 import git
 import json
 import sqlite3
 import datetime
-from base64 import b64encode, urlsafe_b64encode
-import random
+from base64 import urlsafe_b64encode
 from pathlib import Path
 from flask_migrate import upgrade
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from uuid import uuid4
+import logging
+
+logging.basicConfig(level="DEBUG")
 
 app = Flask(__name__)
 
@@ -29,6 +33,7 @@ app.config.from_pyfile("/".join([curDir, ".env"]))
 @app.route("/", methods=["GET", "POST"])
 @app.route("/deploy", methods=["GET", "POST"])
 def deploy():
+    logging.info("New site request recieved")
     payload = json.loads(request.data)
     filename = re.sub(r"\W+", "", payload["company"]["name"])
     webaddress = filename.lower() + "." + app.config["SUBSCRIBIE_DOMAIN"]
@@ -51,7 +56,9 @@ def deploy():
         shutil.copy(envFileSrc, envFileDst)
 
         # Generate RSA keys for jwt auth
-        subprocess.call(f'ssh-keygen -t rsa -N "" -f {dstDir}id_rsa', shell=True)
+        subprocess.call(
+            f'ssh-keygen -t rsa -N "" -f {dstDir}id_rsa', shell=True
+        )  # noqa E501
 
         # Update .env values for public & private keys
         privateKeyDst = dstDir + "id_rsa"
@@ -251,9 +258,9 @@ def deploy():
     sell_price = payload["plans"][0]["sell_price"]
 
     cur.execute(
-        """INSERT INTO plan 
-                (created_at, archived, uuid, title, sell_price, interval_amount, 
-                interval_unit) 
+        """INSERT INTO plan
+                (created_at, archived, uuid, title, sell_price, interval_amount,
+                interval_unit)
                 VALUES (?,?,?,?,?,?,?)""",
         (now, archived, uuid, title, sell_price, interval_amount, interval_unit),
     )
@@ -270,8 +277,8 @@ def deploy():
 
     # Item requirements
     cur.execute(
-        """INSERT INTO plan_requirements (id , created_at, plan_id, 
-                    instant_payment, subscription) 
+        """INSERT INTO plan_requirements (id , created_at, plan_id,
+                    instant_payment, subscription)
                  VALUES ( 1, ?, 1, ?, ?)
                  """,
         (now, requires_instant_payment, requires_subscription),
@@ -286,7 +293,7 @@ def deploy():
         points.append((index, now, selling_point, 1))
 
     cur.executemany(
-        """INSERT INTO plan_selling_points 
+        """INSERT INTO plan_selling_points
                     (id, created_at, point, plan_id)
                     VALUES (?, ?, ?, ?)""",
         points,
