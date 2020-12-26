@@ -25,6 +25,16 @@ Responsible for building new subscribie sites.
 
 For running locally in development: `./run.sh`
 
+### Speed improvements
+
+Create a local pypi cache:
+```
+python -m pip download --destination-directory /DIR/requirements -r requirements.txt
+```
+
+Then set `PIP_CACHE_DIR` (deployer will use pip `--find-links` to first consult this directory when doing
+pip install).
+
 
 ### UWSGI notes
 How to run: 

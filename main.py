@@ -49,7 +49,7 @@ def deploy():
             raise
         # Clone subscribie repo & set-up .env files
     try:
-        git.Git(dstDir).clone("https://github.com/Subscribie/subscribie")
+        git.Git(dstDir).clone(app.config["SUBSCRIBIE_CLONE_REPO"])
         # Create .env file from .env.example
         envFileSrc = Path(dstDir + "/subscribie/.env.example")
         envFileDst = Path(dstDir + "/subscribie/.env")
@@ -167,6 +167,12 @@ def deploy():
         subprocess.call(
             f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}", shell=True
         )
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST {app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}",
+            shell=True,
+        )
+
     except KeyError as e:
         print(f"KeyError missing config? {e}")
 
@@ -184,7 +190,7 @@ def deploy():
     )
     # Activate virtualenv and install requirements
     subprocess.call(
-        "export LC_ALL=C.UTF-8; export LANG=C.UTF-8; . venv/bin/activate;pip install -r requirements.txt",
+        f"export LC_ALL=C.UTF-8; export LANG=C.UTF-8; . venv/bin/activate;python -m pip install --find-links={app.config['PIP_CACHE_DIR']} -r requirements.txt",
         cwd="".join([dstDir, "subscribie"]),
         shell=True,
     )
