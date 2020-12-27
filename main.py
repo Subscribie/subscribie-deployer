@@ -82,17 +82,6 @@ def deploy():
             shell=True,
         )
 
-        # Set Stripe pre-stripe connect env settings
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_SECRET_KEY {app.config['STRIPE_SECRET_KEY']}",
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_PUBLISHABLE_KEY {app.config['STRIPE_PUBLISHABLE_KEY']}",
-            shell=True,
-        )
-
         # Set Stripe keys for Stripe connect live mode
         subprocess.call(
             f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",
