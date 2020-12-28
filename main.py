@@ -319,7 +319,7 @@ def deploy():
             contents
             + f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
         )
-        contents += f"\nvirtualenv = {app.config['PYTHON_VENV_DIRECTORY']}"
+        contents += f"\nvirtualenv = {app.config['PYTHON_VENV_DIRECTORY']}\n"
         # Writeout <webaddress>.ini config to file. uwsgi watches for .ini files
         # uwsgi will automatically detect this .ini file and start
         # routing requests to the site
