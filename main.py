@@ -82,6 +82,21 @@ def deploy():
             shell=True,
         )
 
+        # Set DB PATH & SQLALCHEMY URI
+        SQLALCHEMY_DATABASE_URI = "sqlite:///" + dstDir + "data.db"
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set SQLALCHEMY_DATABASE_URI {SQLALCHEMY_DATABASE_URI}",
+            shell=True,
+        )
+
+        DB_FULL_PATH = dstDir + "data.db"
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set DB_FULL_PATH {DB_FULL_PATH}",
+            shell=True,
+        )
+
         # Set Stripe keys for Stripe connect live mode
         subprocess.call(
             f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",
