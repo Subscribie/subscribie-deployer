@@ -185,16 +185,9 @@ def deploy():
         print(e, e.args)
         pass
 
-    # Create virtualenv & install subscribie requirements to it
-    print("Creating virtualenv")
+    # Activate virtualenv and update/install requirements
     subprocess.call(
-        "export LC_ALL=C.UTF-8; export LANG=C.UTF-8; virtualenv -p python3 venv",
-        cwd="".join([dstDir, "subscribie"]),
-        shell=True,
-    )
-    # Activate virtualenv and install requirements
-    subprocess.call(
-        f"export LC_ALL=C.UTF-8; export LANG=C.UTF-8; . venv/bin/activate;python -m pip install --find-links={app.config['PIP_CACHE_DIR']} -r requirements.txt",
+        f"export LC_ALL=C.UTF-8; export LANG=C.UTF-8; . {app.config['PYTHON_VENV_DIRECTORY']}/bin/activate;python -m pip install --find-links={app.config['PIP_CACHE_DIR']} -r requirements.txt",
         cwd="".join([dstDir, "subscribie"]),
         shell=True,
     )
@@ -326,6 +319,7 @@ def deploy():
             contents
             + f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
         )
+        contents += f"\nvirtualenv = {app.config['PYTHON_VENV_DIRECTORY']}"
         # Writeout <webaddress>.ini config to file. uwsgi watches for .ini files
         # uwsgi will automatically detect this .ini file and start
         # routing requests to the site
