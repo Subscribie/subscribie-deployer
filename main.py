@@ -316,8 +316,7 @@ def deploy():
         # Append uwsgi's subscribe-to line with hostname of new site:
         contents += "\nsubscribe-to = /tmp/sock2:" + webaddress + "\n"
         contents += (
-            contents
-            + f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
+            f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
         )
         contents += f"\nvirtualenv = {app.config['PYTHON_VENV_DIRECTORY']}\n"
         # Writeout <webaddress>.ini config to file. uwsgi watches for .ini files
