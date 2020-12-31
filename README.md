@@ -1,14 +1,18 @@
 # Subscribie Deployer 
 
-Standalone flask app which receives a new site build request, and builds 
+Standalone flask app which receives a new site build request, and builds
 the site. (ref https://github.com/Subscribie/module-builder/issues/7)
 
 Responsible for building new subscribie sites.
 
-- When a new site is created (via /start-building) , all the
-  data to build that site (in yaml) is sent to this endpoint which builds 
+- When a new site is created (via /start-building), all
+  data needed to build the site is sent (as json) to this endpoint which then builds
   a new subscribie site
-- Each site is defined in a yaml file, and a clone of the Subscribie repo
+- Site settings are in an .env file
+- Each site runes in its own isolates process (using uwisgi), using the same subscribie repo
+  - Note Each site runs independently with its own database, but the codebase is *not* duplicated.
+  - This is different from a previous implementation which cloned the Subscribie repo for each
+    new site.
 - Each site runs as a uwsgi 'vassal' which allows new sites to come online
   without having to restart the web server
 
@@ -22,6 +26,7 @@ Responsible for building new subscribie sites.
 
 - Copy .env.example to .env
   - Edit SITES_DIRECTORY to directory where to deploy sites to
+  - And all other env settings
 
 For running locally in development: `./run.sh`
 
@@ -30,9 +35,9 @@ For running locally in development: `./run.sh`
 - Clone subscribie to a folder on a deployment server. Set `SUBSCRIBIE_REPO_DIRECTORY` to the repo folder.
 
 - Create a `virtualenv` folder and set to `PYTHON_VENV_DIRECTORY`, pip install the requirements.txt
-- Create a database schema using `flask db upgrade` inside `PYTHON_VENV_DIRECTORY`
+- Go into the subscribie shared repo, and create a database schema using `flask db upgrade` inside `PYTHON_VENV_DIRECTORY`
   - Copy `.env.example` to `.env` and set `SQLALCHEMY_DATABASE_URI` to `SUBSCRIBIE_REPO_DIRECTORY` root (the empty schema is copied to new sites to speed up new site deployments
-- Set `PYTHON_PATH_INJECT` to the same value as `SUBSCRIBIE_REPO_DIRECTORY`
+- Back into this repo (deployer) Set `PYTHON_PATH_INJECT` to the same value as `SUBSCRIBIE_REPO_DIRECTORY`
 
 ### UWSGI notes
 How to run: 
