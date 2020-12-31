@@ -10,7 +10,6 @@ import sqlite3
 import datetime
 from base64 import urlsafe_b64encode
 from pathlib import Path
-from flask_migrate import upgrade
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from uuid import uuid4
@@ -78,6 +77,14 @@ def deploy():
         )  # noqa E501
         envFileDst = Path(dstDir + "/.env")
         shutil.copy(envFileSrc, envFileDst)
+
+        # Set SUBSCRIBIE_REPO_DIRECTORY for subscribie site deployment
+        # Note that the deployer also has the same env value set.
+        SUBSCRIBIE_REPO_DIRECTORY = app.config["SUBSCRIBIE_REPO_DIRECTORY"]
+        subprocess.call(
+            f"dotenv -f {envFileDst} set SUBSCRIBIE_REPO_DIRECTORY {SUBSCRIBIE_REPO_DIRECTORY}",  # noqa
+            shell=True,  # noqa E501
+        )
 
         # Generate RSA keys for jwt auth
         subprocess.call(
@@ -224,7 +231,10 @@ def deploy():
     # Migrate the database
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + dstDir + "data.db"
 
-    upgrade(directory=app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/migrations")
+    # Copy over empty db schema
+    shutil.copy(
+        Path(app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/data.db"), dstDir
+    )  # noqa: E501
 
     # Seed users table with site owners email address & password so can login
     con = sqlite3.connect(dstDir + "data.db")
