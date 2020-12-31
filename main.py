@@ -5,7 +5,6 @@ import re
 import subprocess
 from flask import Flask, request
 from werkzeug.security import generate_password_hash
-import git
 import json
 import sqlite3
 import datetime
@@ -16,6 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from uuid import uuid4
 import logging
+import tempfile
 
 logging.basicConfig(level="DEBUG")
 
@@ -28,6 +28,30 @@ Migrate(app, db)
 # Load .env settings
 curDir = os.path.dirname(os.path.realpath(__file__))
 app.config.from_pyfile("/".join([curDir, ".env"]))
+
+
+def sed_inplace(filename, pattern, repl):
+    """
+    Perform the pure-Python equivalent of in-place `sed` substitution: e.g.,
+    `sed -i -e 's/'${pattern}'/'${repl}' "${filename}"`.
+    Credit: Cecil Curry https://stackoverflow.com/a/31499114
+    """
+    # For efficiency, precompile the passed regular expression.
+    pattern_compiled = re.compile(pattern)
+
+    # For portability, NamedTemporaryFile() defaults to mode "w+b" (i.e., binary  # noqa
+    # writing with updating). This is usually a good thing. In this case,  # noqa
+    # however, binary writing imposes non-trivial encoding constraints trivially  # noqa
+    # resolved by switching to text writing. Let's do that.
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+        with open(filename) as src_file:
+            for line in src_file:
+                tmp_file.write(pattern_compiled.sub(repl, line))
+
+    # Overwrite the original file with the munged temporary file in a
+    # manner preserving file attributes (e.g., permissions).
+    shutil.copystat(filename, tmp_file.name)
+    shutil.move(tmp_file.name, filename)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -47,12 +71,12 @@ def deploy():
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-        # Clone subscribie repo & set-up .env files
     try:
-        git.Git(dstDir).clone(app.config["SUBSCRIBIE_CLONE_REPO"])
         # Create .env file from .env.example
-        envFileSrc = Path(dstDir + "/subscribie/.env.example")
-        envFileDst = Path(dstDir + "/subscribie/.env")
+        envFileSrc = Path(
+            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/.env.example"
+        )  # noqa E501
+        envFileDst = Path(dstDir + "/.env")
         shutil.copy(envFileSrc, envFileDst)
 
         # Generate RSA keys for jwt auth
@@ -63,7 +87,8 @@ def deploy():
         # Update .env values for public & private keys
         privateKeyDst = dstDir + "id_rsa"
         subprocess.call(
-            f"dotenv -f {envFileDst} set PRIVATE_KEY {privateKeyDst}", shell=True
+            f"dotenv -f {envFileDst} set PRIVATE_KEY {privateKeyDst}",
+            shell=True,  # noqa E501
         )
 
         publicKeyDst = dstDir + "id_rsa.pub"
@@ -76,9 +101,19 @@ def deploy():
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
         )
 
+        # Template base dir
+        TEMPLATE_BASE_DIR = Path(
+            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/subscribie/themes/"
+        )
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set TEMPLATE_BASE_DIR {TEMPLATE_BASE_DIR}",  # noqa: E501
+            shell=True,
+        )
+
         # Set HONEYCOMB_API_KEY connect env settings
         subprocess.call(
-            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",
+            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",  # noqa: E501
             shell=True,
         )
 
@@ -86,7 +121,7 @@ def deploy():
         SQLALCHEMY_DATABASE_URI = "sqlite:///" + dstDir + "data.db"
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set SQLALCHEMY_DATABASE_URI {SQLALCHEMY_DATABASE_URI}",
+            f"dotenv -f {envFileDst} set SQLALCHEMY_DATABASE_URI {SQLALCHEMY_DATABASE_URI}",  # noqa: E501
             shell=True,
         )
 
@@ -99,26 +134,26 @@ def deploy():
 
         # Set Stripe keys for Stripe connect live mode
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_LIVE_PUBLISHABLE_KEY {app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_LIVE_PUBLISHABLE_KEY {app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}",  # noqa: E501
             shell=True,
         )
         # Set Stripe keys for Stripe connect test mode
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_TEST_SECRET_KEY {app.config['STRIPE_TEST_SECRET_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_TEST_SECRET_KEY {app.config['STRIPE_TEST_SECRET_KEY']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_TEST_PUBLISHABLE_KEY {app.config['STRIPE_TEST_PUBLISHABLE_KEY']}",
+            f"dotenv -f {envFileDst} set STRIPE_TEST_PUBLISHABLE_KEY {app.config['STRIPE_TEST_PUBLISHABLE_KEY']}",  # noqa: E501
             shell=True,
         )
 
         # Update .env values for mail
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_SERVER {app.config['MAIL_SERVER']}",
+            f"dotenv -f {envFileDst} set MAIL_SERVER {app.config['MAIL_SERVER']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
@@ -130,50 +165,51 @@ def deploy():
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_USERNAME {app.config['MAIL_USERNAME']}",
+            f"dotenv -f {envFileDst} set MAIL_USERNAME {app.config['MAIL_USERNAME']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_PASSWORD {app.config['MAIL_PASSWORD']}",
+            f"dotenv -f {envFileDst} set MAIL_PASSWORD {app.config['MAIL_PASSWORD']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_DEFAULT_SENDER {app.config['EMAIL_LOGIN_FROM']}",
+            f"dotenv -f {envFileDst} set MAIL_DEFAULT_SENDER {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}",
+            f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}",
+            f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
             shell=True,
         )
 
-        uploadImgDst = dstDir + "subscribie/subscribie/static/"
-        uploadedFilesDst = dstDir + "subscribie/subscribie/uploads/"
+        uploadImgDst = Path(dstDir + "/uploads/")
+        uploadedFilesDst = Path(dstDir + "/uploads/")
         subprocess.call(
             f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}",
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set UPLOADED_FILES_DEST {uploadedFilesDst}",
+            f"dotenv -f {envFileDst} set UPLOADED_FILES_DEST {uploadedFilesDst}",  # noqa: E501
             shell=True,
         )
 
         successRedirectUrl = "https://" + webaddress + "/complete_mandate"
         subprocess.call(
-            f"dotenv -f {envFileDst} set SUCCESS_REDIRECT_URL {successRedirectUrl}",
+            f"dotenv -f {envFileDst} set SUCCESS_REDIRECT_URL {successRedirectUrl}",  # noqa: E501
             shell=True,
         )
 
         thankyouUrl = "https://" + webaddress + "/thankyou"
         subprocess.call(
-            f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}", shell=True
+            f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}",
+            shell=True,  # noqa: E501
         )
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST {app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}",
+            f"dotenv -f {envFileDst} set STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST {app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}",  # noqa: E501
             shell=True,
         )
 
@@ -185,16 +221,10 @@ def deploy():
         print(e, e.args)
         pass
 
-    # Activate virtualenv and update/install requirements
-    subprocess.call(
-        f"export LC_ALL=C.UTF-8; export LANG=C.UTF-8; . {app.config['PYTHON_VENV_DIRECTORY']}/bin/activate;python -m pip install --find-links={app.config['PIP_CACHE_DIR']} -r requirements.txt",
-        cwd="".join([dstDir, "subscribie"]),
-        shell=True,
-    )
-
     # Migrate the database
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + dstDir + "data.db"
-    upgrade(directory=dstDir + "subscribie/migrations")
+
+    upgrade(directory=app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/migrations")
 
     # Seed users table with site owners email address & password so can login
     con = sqlite3.connect(dstDir + "data.db")
@@ -205,7 +235,7 @@ def deploy():
     login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
     password = generate_password_hash(payload["password"])
     cur.execute(
-        "INSERT INTO user (email, password, created_at, active, login_token) VALUES (?,?,?,?,?)",
+        "INSERT INTO user (email, password, created_at, active, login_token) VALUES (?,?,?,?,?)",  # noqa: E501
         (
             email,
             password,
@@ -215,7 +245,7 @@ def deploy():
         ),
     )
     cur.execute(
-        "INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)"
+        "INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)"  # noqa: E501
     )
     con.commit()
     con.close()
@@ -227,7 +257,8 @@ def deploy():
     now = datetime.datetime.now()
     company_name = payload["company"]["name"]
     cur.execute(
-        "INSERT INTO company (created_at, name) VALUES (?,?)", (now, company_name)
+        "INSERT INTO company (created_at, name) VALUES (?,?)",
+        (now, company_name),  # noqa: E501
     )
     con.commit()
     con.close()
@@ -262,10 +293,21 @@ def deploy():
 
     cur.execute(
         """INSERT INTO plan
-                (created_at, archived, uuid, title, sell_price, interval_amount,
+                (created_at, archived, uuid,
+                title,
+                sell_price,
+                interval_amount,
                 interval_unit)
                 VALUES (?,?,?,?,?,?,?)""",
-        (now, archived, uuid, title, sell_price, interval_amount, interval_unit),
+        (
+            now,
+            archived,
+            uuid,
+            title,
+            sell_price,
+            interval_amount,
+            interval_unit,
+        ),  # noqa: E501
     )
 
     if interval_amount == 0:
@@ -308,22 +350,46 @@ def deploy():
     # Open application skeleton (app.skel) file and append
     # "subscribe-to = <website-hostname>" config entry for the new
     # sites webaddress so that uwsgi's fastrouter can route the hostname.
-    # Also add cron2 = minute=-1 curl -L <webaddress>/admin/announce-stripe-connect
+    # Also add cron2 = minute=-1 curl -L <webaddress>/admin/announce-stripe-connect  # noqa: E501
     # So that site will announce its stipe connect account id
     curDir = os.path.dirname(os.path.realpath(__file__))
-    with open(curDir + "/" + "app.skel") as f:
-        contents = f.read()
-        # Append uwsgi's subscribe-to line with hostname of new site:
-        contents += "\nsubscribe-to = /tmp/sock2:" + webaddress + "\n"
-        contents += (
-            f"\ncron2 = minute=-1 curl -L {webaddress}/admin/announce-stripe-connect\n"
-        )
-        contents += f"\nvirtualenv = {app.config['PYTHON_VENV_DIRECTORY']}\n"
-        # Writeout <webaddress>.ini config to file. uwsgi watches for .ini files
-        # uwsgi will automatically detect this .ini file and start
-        # routing requests to the site
-        with open(dstDir + "/" + webaddress + ".ini", "w") as f:
-            f.write(contents)
+
+    # Copy app.skel to <webaddress>.ini
+    vassalConfigFile = Path(dstDir + "/" + webaddress + ".ini")
+    shutil.copy(Path(curDir + "/" + "app.skel"), vassalConfigFile)
+
+    sed_inplace(
+        vassalConfigFile,
+        r"subscribe-to.*",
+        f"subscribe-to = /tmp/sock2:{webaddress}\n",  # noqa: E501
+    )
+
+    sed_inplace(
+        vassalConfigFile,
+        r"cron2.*",
+        fr"cron2 = minute=-1 curl -L {webaddress}\/admin\/announce-stripe-connect\n",  # noqa: E501
+    )
+
+    sed_inplace(
+        vassalConfigFile,
+        r"^virtualenv.*",
+        fr'virtualenv = {app.config["PYTHON_VENV_DIRECTORY"]}\n',  # noqa: E501
+    )
+
+    sed_inplace(
+        vassalConfigFile,
+        r"^env.*",
+        f'env = PYTHON_PATH_INJECT={app.config["SUBSCRIBIE_REPO_DIRECTORY"]}\n',  # noqa: E501
+    )
+
+    wsgiFile = Path(
+        app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/subscribie.wsgi"
+    )  # noqa: E501
+    sed_inplace(
+        vassalConfigFile,
+        r"wsgi-file.*",
+        f"wsgi-file = {wsgiFile}\n",
+    )
 
     login_url = "".join(["https://", webaddress, "/auth/login/", login_token])
 
