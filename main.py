@@ -11,7 +11,6 @@ import datetime
 from base64 import urlsafe_b64encode
 from pathlib import Path
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from uuid import uuid4
 import logging
 import tempfile
@@ -22,7 +21,6 @@ app = Flask(__name__)
 
 db = SQLAlchemy()
 db.init_app(app)
-Migrate(app, db)
 
 # Load .env settings
 curDir = os.path.dirname(os.path.realpath(__file__))
