@@ -27,14 +27,12 @@ For running locally in development: `./run.sh`
 
 ### Speed improvements
 
-Create a local pypi cache:
-```
-python -m pip download --destination-directory /DIR/requirements -r requirements.txt
-```
+- Clone subscribie to a folder on a deployment server. Set `SUBSCRIBIE_REPO_DIRECTORY` to the repo folder.
 
-Then set `PIP_CACHE_DIR` (deployer will use pip `--find-links` to first consult this directory when doing
-pip install).
-
+- Create a `virtualenv` folder and set to `PYTHON_VENV_DIRECTORY`, pip install the requirements.txt
+- Create a database schema using `flask db upgrade` inside `PYTHON_VENV_DIRECTORY`
+  - Copy `.env.example` to `.env` and set `SQLALCHEMY_DATABASE_URI` to `SUBSCRIBIE_REPO_DIRECTORY` root (the empty schema is copied to new sites to speed up new site deployments
+- Set `PYTHON_PATH_INJECT` to the same value as `SUBSCRIBIE_REPO_DIRECTORY`
 
 ### UWSGI notes
 How to run: 
