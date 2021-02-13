@@ -240,7 +240,7 @@ def deploy():
         )
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_SCOPE {app.config['GOOGLE_SCOPE']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set GOOGLE_SCOPE '{app.config['GOOGLE_SCOPE']}'",  # noqa: E501
             shell=True,
         )
 
