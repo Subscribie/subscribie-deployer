@@ -191,9 +191,9 @@ def deploy():
         )
 
         uploadImgDst = Path(dstDir + "/uploads/")
-        os.mkdirs(uploadImgDst, exist_ok=True)
+        os.makedirs(uploadImgDst, exist_ok=True)
         uploadedFilesDst = Path(dstDir + "/uploads/")
-        os.mkdirs(uploadedFilesDst, exist_ok=True)
+        os.makedirs(uploadedFilesDst, exist_ok=True)
         subprocess.call(
             f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}",
             shell=True,
