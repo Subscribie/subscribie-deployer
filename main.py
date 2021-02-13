@@ -230,7 +230,7 @@ def deploy():
         )
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_REDIRECT_URI {app.config['GOOGLE_REDIRECT_URI']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set GOOGLE_REDIRECT_URI {webaddress}/google-oauth2callback/",  # noqa: E501
             shell=True,
         )
 
