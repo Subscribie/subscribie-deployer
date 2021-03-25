@@ -333,8 +333,9 @@ def deploy():
                 title,
                 sell_price,
                 interval_amount,
-                interval_unit)
-                VALUES (?,?,?,?,?,?,?)""",
+                interval_unit,
+                trial_period_days)
+                VALUES (?,?,?,?,?,?,?,?)""",
         (
             now,
             archived,
@@ -343,6 +344,7 @@ def deploy():
             sell_price,
             interval_amount,
             interval_unit,
+            0,
         ),  # noqa: E501
     )
 
