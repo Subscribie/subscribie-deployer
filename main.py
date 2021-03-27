@@ -122,6 +122,12 @@ def deploy():
             shell=True,
         )
 
+        #
+        subprocess.call(
+            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",  # noqa: E501
+            shell=True,
+        )
+
         # Set DB PATH & SQLALCHEMY URI
         SQLALCHEMY_DATABASE_URI = "sqlite:///" + dstDir + "data.db"
 
@@ -334,7 +340,8 @@ def deploy():
                 sell_price,
                 interval_amount,
                 interval_unit,
-                trial_period_days)
+                trial_period_days,
+                private)
                 VALUES (?,?,?,?,?,?,?,?)""",
         (
             now,
@@ -344,6 +351,7 @@ def deploy():
             sell_price,
             interval_amount,
             interval_unit,
+            0,
             0,
         ),  # noqa: E501
     )
