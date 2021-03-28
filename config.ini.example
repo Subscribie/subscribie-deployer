@@ -1,15 +1,16 @@
 [uwsgi]
 # Example uwsgi emperor config
-# run with: uwsgi --ini config.ini 
+# Ensure /tmp/sockets is present
+# run with: killall -9 uwsgi ; uwsgi -d /tmp/mylog.log --ini config.ini
 strict = true
 protocol = uwsgi
 master = true
 pidfile = uwsgi.pid
 emperor = ./sites/*/*.ini
-#fastrouter = /tmp/sock1
+enable-threads = true
 fastrouter = 127.0.0.1:8001
 chown-socket = www-data:www-data
 chmod = 777
 fastrouter-subscription-server = /tmp/sock2
 vacuum = true
-
+log-format = %(host) - %(addr) - %(user) [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) "%(referer)" "%(uagent)"
