@@ -342,7 +342,7 @@ def deploy():
                 interval_unit,
                 trial_period_days,
                 private)
-                VALUES (?,?,?,?,?,?,?,?)""",
+                VALUES (?,?,?,?,?,?,?,?,?)""",
         (
             now,
             archived,
