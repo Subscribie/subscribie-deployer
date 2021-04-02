@@ -286,9 +286,7 @@ def deploy():
             login_token,
         ),
     )
-    cur.execute(
-        "INSERT INTO payment_provider (gocardless_active, stripe_active) VALUES(0,0)"  # noqa: E501
-    )
+    cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
     con.commit()
     con.close()
 
@@ -319,6 +317,9 @@ def deploy():
     cur = con.cursor()
     now = datetime.datetime.now()
     title = payload["plans"][0]["title"]
+    description = payload["plans"][0]["description"].strip()
+    if description == "":
+        description = None
     archived = 0
     uuid = str(uuid4())
     interval_amount = payload["plans"][0]["interval_amount"]
@@ -337,17 +338,19 @@ def deploy():
         """INSERT INTO plan
                 (created_at, archived, uuid,
                 title,
+                description,
                 sell_price,
                 interval_amount,
                 interval_unit,
                 trial_period_days,
                 private)
-                VALUES (?,?,?,?,?,?,?,?,?)""",
+                VALUES (?,?,?,?,?,?,?,?,?,?)""",
         (
             now,
             archived,
             uuid,
             title,
+            description,
             sell_price,
             interval_amount,
             interval_unit,
@@ -374,14 +377,10 @@ def deploy():
                  """,
         (now, requires_instant_payment, requires_subscription),
     )
-    # Item selling points
-    selling_points = payload["plans"][0]["selling_points"]
 
     points = []
-
-    for index, selling_point in enumerate(selling_points):
-        now = datetime.datetime.now()
-        points.append((index, now, selling_point, 1))
+    for i in range(3):
+        points.append((i, datetime.datetime.now(), f"Point {i}", 1))
 
     cur.executemany(
         """INSERT INTO plan_selling_points
