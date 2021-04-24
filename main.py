@@ -106,6 +106,14 @@ def deploy():
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
         )
 
+        # Create custom_pages path
+        custom_pages_path = Path(dstDir + "/custom_pages/")
+        # Set CUSTOM_PAGES_PATH in .env
+        subprocess.call(
+            f"dotenv -f {envFileDst} set CUSTOM_PAGES_PATH {custom_pages_path}",
+            shell=True,
+        )
+
         # Template base dir
         TEMPLATE_BASE_DIR = Path(
             app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/subscribie/themes/"
