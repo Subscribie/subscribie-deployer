@@ -16,6 +16,7 @@ vacuum = true
 subscribe-to = /tmp/sock2:example.com
 socket = /tmp/sockets/%n.sock
 cron2 = minute=-1 curl -L example.com/admin/announce-stripe-connect
+cron2 = minute=-10 curl -L example.com/admin/refresh-subscription-statuses
 # Enable threads for threading module see subscribie.tasks
 # see https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html#a-note-on-python-threads
 enable-threads = true
