@@ -428,7 +428,7 @@ def deploy():
     sed_inplace(
         vassalConfigFile,
         r"cron2.*refresh-subscription-statuses",
-        fr"cron2 = minute=-1 curl -L {webaddress}\/admin\/refresh-subscription-statuses\n",  # noqa: E501
+        fr"cron2 = minute=-10 curl -L {webaddress}\/admin\/refresh-subscription-statuses\n",  # noqa: E501
     )
 
     sed_inplace(
