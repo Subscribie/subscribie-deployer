@@ -113,6 +113,8 @@ def deploy():
             f"dotenv -f {envFileDst} set CUSTOM_PAGES_PATH {custom_pages_path}",
             shell=True,
         )
+        if Path(custom_pages_path).exists() is False:
+            os.mkdir(custom_pages_path)
 
         # Template base dir
         TEMPLATE_BASE_DIR = Path(
