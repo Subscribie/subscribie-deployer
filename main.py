@@ -327,8 +327,9 @@ def deploy():
     cur = con.cursor()
     now = datetime.datetime.now()
     title = payload["plans"][0]["title"]
-    description = payload["plans"][0]["description"].strip()
-    if description == "":
+    try:
+        description = payload["plans"][0]["description"].strip()
+    except KeyError:
         description = None
     archived = 0
     uuid = str(uuid4())
