@@ -174,35 +174,16 @@ def deploy():
 
         # Update .env values for mail
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_SERVER {app.config['MAIL_SERVER']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_PORT {app.config['MAIL_PORT']}",
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_PORT {app.config['MAIL_PORT']}",
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_USERNAME {app.config['MAIL_USERNAME']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_PASSWORD {app.config['MAIL_PASSWORD']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
             f"dotenv -f {envFileDst} set MAIL_DEFAULT_SENDER {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
             shell=True,
         )
         subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_USE_TLS {app.config['MAIL_USE_TLS']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
             shell=True,
         )
+
         subprocess.call(
-            f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set EMAIL_QUEUE_FOLDER {app.config['EMAIL_QUEUE_FOLDER']}",  # noqa: E501
             shell=True,
         )
 
