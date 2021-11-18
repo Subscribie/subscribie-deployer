@@ -83,23 +83,6 @@ def deploy():
             shell=True,  # noqa E501
         )
 
-        # Generate RSA keys for jwt auth
-        subprocess.call(
-            f'ssh-keygen -t rsa -N "" -f {dstDir}id_rsa', shell=True
-        )  # noqa E501
-
-        # Update .env values for public & private keys
-        privateKeyDst = dstDir + "id_rsa"
-        subprocess.call(
-            f"dotenv -f {envFileDst} set PRIVATE_KEY {privateKeyDst}",
-            shell=True,  # noqa E501
-        )
-
-        publicKeyDst = dstDir + "id_rsa.pub"
-        subprocess.call(
-            f"dotenv -f {envFileDst} set PUBLIC_KEY {publicKeyDst}", shell=True
-        )
-
         # Set SERVER_NAME in .env
         subprocess.call(
             f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
