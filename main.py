@@ -8,7 +8,6 @@ from werkzeug.security import generate_password_hash
 import json
 import sqlite3
 import datetime
-from base64 import urlsafe_b64encode
 from pathlib import Path
 from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
@@ -110,7 +109,7 @@ def deploy():
         custom_pages_path = Path(dstDir + "/custom_pages/")
         # Set CUSTOM_PAGES_PATH in .env
         subprocess.call(
-            f"dotenv -f {envFileDst} set CUSTOM_PAGES_PATH {custom_pages_path}",
+            f"dotenv -f {envFileDst} set CUSTOM_PAGES_PATH {custom_pages_path}",  # noqa: E501
             shell=True,
         )
         if Path(custom_pages_path).exists() is False:
@@ -265,8 +264,12 @@ def deploy():
     cur = con.cursor()
     email = payload["users"][0].lower()
     now = datetime.datetime.now()
-    login_token = urlsafe_b64encode(os.urandom(24)).decode("utf-8")
     password = generate_password_hash(payload["password"])
+    try:
+        login_token = payload["login_token"]
+    except KeyError as e:
+        login_token = ""
+        logging.error(f"load_token not sent. {e}")
     cur.execute(
         "INSERT INTO user (email, password, created_at, active, login_token) VALUES (?,?,?,?,?)",  # noqa: E501
         (
@@ -277,6 +280,7 @@ def deploy():
             login_token,
         ),
     )
+    cur.execute("UPDATE user set login_token = ?", (login_token,))  # noqa: E501
     cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
     con.commit()
     con.close()
