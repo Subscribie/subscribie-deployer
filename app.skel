@@ -1,4 +1,11 @@
 [uwsgi]
+
+# app.skel is a uwsgi config file template
+# Why .skel? It's to indicate that its a 'template' or 'skeleton' file - when a new shop is deployed, then, it gets used a a template and a valid uwsgi config file is created from it:
+# But why .skel? It's inspired from from /etc/skel/ on ubuntu which ubuntu uses when a new user is added (google ubuntu skel)
+# https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html)
+
+
 strict = true
 # %d absolute path of the directory containing the configuration file
 # See https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#magic-variables
