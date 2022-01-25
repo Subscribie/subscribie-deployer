@@ -216,32 +216,6 @@ def deploy():
             shell=True,
         )
 
-        # Set env config for Google oauth signin/up
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_CLIENT_ID {app.config['GOOGLE_CLIENT_ID']}",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_CLIENT_SECRET {app.config['GOOGLE_CLIENT_SECRET']}",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_REDIRECT_URI {webaddress}/google-oauth2callback/",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_RESPONSE_TYPE {app.config['GOOGLE_RESPONSE_TYPE']}",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_SCOPE '{app.config['GOOGLE_SCOPE']}'",  # noqa: E501
-            shell=True,
-        )
-
     except KeyError as e:
         print(f"KeyError missing config? {e}")
 
