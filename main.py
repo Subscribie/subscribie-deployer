@@ -216,6 +216,22 @@ def deploy():
             shell=True,
         )
 
+        # Update .env values for SAAS api
+        subprocess.call(
+            f"dotenv -f {envFileDst} set SAAS_URL {app.config['SAAS_URL']}",  # noqa: E501
+            shell=True,
+        )
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set SAAS_API_KEY {app.config['SAAS_API_KEY']}",  # noqa: E501
+            shell=True,
+        )
+
+        subprocess.call(
+            f"dotenv -f {envFileDst} set SAAS_ACTIVATE_ACCOUNT_PATH {app.config['SAAS_ACTIVATE_ACCOUNT_PATH']}",  # noqa: E501
+            shell=True,
+        )
+
     except KeyError as e:
         print(f"KeyError missing config? {e}")
 
