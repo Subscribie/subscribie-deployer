@@ -199,29 +199,19 @@ def deploy():
             shell=True,
         )
 
-        # Set env config for Google oauth signin/up
+        # Update .env values for SAAS api
         subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_CLIENT_ID {app.config['GOOGLE_CLIENT_ID']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set SAAS_URL {app.config['SAAS_URL']}",  # noqa: E501
             shell=True,
         )
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_CLIENT_SECRET {app.config['GOOGLE_CLIENT_SECRET']}",  # noqa: E501
+            f"dotenv -f {envFileDst} set SAAS_API_KEY {app.config['SAAS_API_KEY']}",  # noqa: E501
             shell=True,
         )
 
         subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_REDIRECT_URI {webaddress}/google-oauth2callback/",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_RESPONSE_TYPE {app.config['GOOGLE_RESPONSE_TYPE']}",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set GOOGLE_SCOPE '{app.config['GOOGLE_SCOPE']}'",  # noqa: E501
+            f"dotenv -f {envFileDst} set SAAS_ACTIVATE_ACCOUNT_PATH {app.config['SAAS_ACTIVATE_ACCOUNT_PATH']}",  # noqa: E501
             shell=True,
         )
 
