@@ -147,7 +147,6 @@ def deploy():
         ] = f"{app.config['SQLALCHEMY_DATABASE_URI']}=sqlite:///{dstDir}data.db"
 
         envVars = "\n".join(map(str, envSettings))
-        envSettings["TELEGRAM_TOKEN"] = "1324567"
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
         subprocess.run(
             f"export $(xargs <{envVars}; cat {envFileSrc} | envsubst > {dstDir}.env)",
