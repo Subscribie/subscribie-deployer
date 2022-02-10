@@ -141,10 +141,9 @@ def deploy():
         envSettings["SAAS_ACTIVATE_ACCOUNT_PATH"] = app.config[
             "SAAS_ACTIVATE_ACCOUNT_PATH"
         ]
-
-        envSettings[
-            "SQLALCHEMY_DATABASE_URI"
-        ] = f"{app.config['SQLALCHEMY_DATABASE_URI']}=sqlite:///{dstDir}data.db"
+        envSettings["TELEGRAM_PYTHON_LOG_LEVEL"] = app.config[
+            "TELEGRAM_PYTHON_LOG_LEVEL"
+        ]
 
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
