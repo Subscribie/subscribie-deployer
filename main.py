@@ -74,145 +74,85 @@ def deploy():
         )  # noqa E501
         envFileDst = Path(dstDir + "/.env")
         shutil.copy(envFileSrc, envFileDst)
+        # Build envSettings vars
+        envSettings = {}
 
-        # Set SUBSCRIBIE_REPO_DIRECTORY for subscribie site deployment
-        # Note that the deployer also has the same env value set.
-        SUBSCRIBIE_REPO_DIRECTORY = app.config["SUBSCRIBIE_REPO_DIRECTORY"]
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SUBSCRIBIE_REPO_DIRECTORY {SUBSCRIBIE_REPO_DIRECTORY}",  # noqa
-            shell=True,  # noqa E501
-        )
+        envSettings[
+            "SUBSCRIBIE_REPO_DIRECTORY"
+        ] = f"{app.config['SUBSCRIBIE_REPO_DIRECTORY']}"
 
-        # Set SERVER_NAME in .env
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SERVER_NAME {webaddress}", shell=True
-        )
+        envSettings["SERVER_NAME"] = webaddress
 
-        # Create custom_pages path
         custom_pages_path = Path(dstDir + "/custom_pages/")
-        # Set CUSTOM_PAGES_PATH in .env
-        subprocess.call(
-            f"dotenv -f {envFileDst} set CUSTOM_PAGES_PATH {custom_pages_path}",  # noqa: E501
-            shell=True,
-        )
+        envSettings["CUSTOM_PAGES_PATH"] = custom_pages_path
+
         if Path(custom_pages_path).exists() is False:
             os.mkdir(custom_pages_path)
 
-        # Template base dir
-        TEMPLATE_BASE_DIR = Path(
-            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/subscribie/themes/"
-        )
+        envSettings[
+            "TEMPLATE_BASE_DIR"
+        ] = f"{Path(app.config['SUBSCRIBIE_REPO_DIRECTORY'])}/subscribie/themes/"
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set TEMPLATE_BASE_DIR {TEMPLATE_BASE_DIR}",  # noqa: E501
-            shell=True,
-        )
+        envSettings["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{dstDir}data.db"
+        envSettings["DB_FULL_PATH"] = f"{dstDir}data.db"
 
-        # Set HONEYCOMB_API_KEY connect env settings
-        subprocess.call(
-            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings[
+            "STRIPE_LIVE_SECRET_KEY"
+        ] = f"{app.config['STRIPE_LIVE_SECRET_KEY']}"
 
-        #
-        subprocess.call(
-            f"dotenv -f {envFileDst} set HONEYCOMB_API_KEY {app.config['HONEYCOMB_API_KEY']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings[
+            "STRIPE_LIVE_PUBLISHABLE_KEY"
+        ] = f"{app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}"
 
-        # Set DB PATH & SQLALCHEMY URI
-        SQLALCHEMY_DATABASE_URI = "sqlite:///" + dstDir + "data.db"
+        envSettings[
+            "STRIPE_TEST_SECRET_KEY"
+        ] = f"{app.config['STRIPE_TEST_SECRET_KEY']}"
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SQLALCHEMY_DATABASE_URI {SQLALCHEMY_DATABASE_URI}",  # noqa: E501
-            shell=True,
-        )
+        envSettings[
+            "STRIPE_TEST_PUBLISHABLE_KEY"
+        ] = f"{app.config['STRIPE_TEST_PUBLISHABLE_KEY']}"
 
-        DB_FULL_PATH = dstDir + "data.db"
+        envSettings["MAIL_DEFAULT_SENDER"] = f"{app.config['EMAIL_LOGIN_FROM']}"
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set DB_FULL_PATH {DB_FULL_PATH}",
-            shell=True,
-        )
+        envSettings["MAIL_LOGIN_FROM"] = f"{app.config['EMAIL_LOGIN_FROM']}"
 
-        # Set Stripe keys for Stripe connect live mode
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_LIVE_SECRET_KEY {app.config['STRIPE_LIVE_SECRET_KEY']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_LIVE_PUBLISHABLE_KEY {app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}",  # noqa: E501
-            shell=True,
-        )
-        # Set Stripe keys for Stripe connect test mode
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_TEST_SECRET_KEY {app.config['STRIPE_TEST_SECRET_KEY']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_TEST_PUBLISHABLE_KEY {app.config['STRIPE_TEST_PUBLISHABLE_KEY']}",  # noqa: E501
-            shell=True,
-        )
-
-        # Update .env values for mail
-        subprocess.call(
-            f"dotenv -f {envFileDst} set MAIL_DEFAULT_SENDER {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set EMAIL_LOGIN_FROM {app.config['EMAIL_LOGIN_FROM']}",  # noqa: E501
-            shell=True,
-        )
-
-        subprocess.call(
-            f"dotenv -f {envFileDst} set EMAIL_QUEUE_FOLDER {app.config['EMAIL_QUEUE_FOLDER']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings["MAIL_QUEUE_FOLDER"] = f"{app.config['EMAIL_QUEUE_FOLDER']}"
 
         uploadImgDst = Path(dstDir + "/uploads/")
         os.makedirs(uploadImgDst, exist_ok=True)
         uploadedFilesDst = Path(dstDir + "/uploads/")
         os.makedirs(uploadedFilesDst, exist_ok=True)
-        subprocess.call(
-            f"dotenv -f {envFileDst} set UPLOADED_IMAGES_DEST {uploadImgDst}",
-            shell=True,
-        )
-        subprocess.call(
-            f"dotenv -f {envFileDst} set UPLOADED_FILES_DEST {uploadedFilesDst}",  # noqa: E501
-            shell=True,
-        )
+
+        envSettings["UPLOADED_IMAGES_DEST"] = uploadImgDst
+        envSettings["UPLOADED_FILES_DEST"] = uploadedFilesDst
 
         successRedirectUrl = "https://" + webaddress + "/complete_mandate"
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SUCCESS_REDIRECT_URL {successRedirectUrl}",  # noqa: E501
-            shell=True,
-        )
+        envSettings["SUCCESS_REDIRECT_URL"] = successRedirectUrl
 
         thankyouUrl = "https://" + webaddress + "/thankyou"
-        subprocess.call(
-            f"dotenv -f {envFileDst} set THANKYOU_URL {thankyouUrl}",
-            shell=True,  # noqa: E501
-        )
+        envSettings["THANKYOU_URL"] = thankyouUrl
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST {app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings[
+            "STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST"
+        ] = f"{app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}"
 
-        # Update .env values for SAAS api
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SAAS_URL {app.config['SAAS_URL']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings["SAAS_URL"] = app.config["SAAS_URL"]
+        envSettings["SAAS_API_KEY"] = app.config["SAAS_API_KEY"]
+        envSettings["SAAS_ACTIVATE_ACCOUNT_PATH"] = app.config[
+            "SAAS_ACTIVATE_ACCOUNT_PATH"
+        ]
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SAAS_API_KEY {app.config['SAAS_API_KEY']}",  # noqa: E501
-            shell=True,
-        )
+        envSettings[
+            "SQLALCHEMY_DATABASE_URI"
+        ] = f"{app.config['SQLALCHEMY_DATABASE_URI']}=sqlite:///{dstDir}data.db"
 
-        subprocess.call(
-            f"dotenv -f {envFileDst} set SAAS_ACTIVATE_ACCOUNT_PATH {app.config['SAAS_ACTIVATE_ACCOUNT_PATH']}",  # noqa: E501
+        envVars = "\n".join(map(str, envSettings))
+        envSettings["TELEGRAM_TOKEN"] = "1324567"
+        my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
+        subprocess.run(
+            f"export $(xargs <{envVars}; cat {envFileSrc} | envsubst > {dstDir}.env)",
             shell=True,
+            env=my_env,
         )
 
     except KeyError as e:
@@ -224,8 +164,6 @@ def deploy():
         pass
 
     # Migrate the database
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + dstDir + "data.db"
-
     # Copy over empty db schema
     shutil.copy(
         Path(app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/data.db"), dstDir
