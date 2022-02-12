@@ -40,41 +40,6 @@ For running locally in development: `./run.sh`
 - Back into this repo (deployer) Set `PYTHON_PATH_INJECT` to the same value as `SUBSCRIBIE_REPO_DIRECTORY`
 
 
-## mod_wsgi Notes & Example apache2 config
-
-[`mod_wsgi`](https://modwsgi.readthedocs.io/en/master/) is bound to the host python version,
-so they must be in sync (this is different from uwsgi).
-
-The python version for `mod_wsgi` must therefore be the same as the virtual environment compiled in the apache
-module.
-
-```
-<VirtualHost *:80>
-  
-    ServerName api.example.co.uk
-    DocumentRoot /home/<user>/www/api.example.co.uk
-
-
-    RewriteEngine On
-
-    WSGIScriptAlias / /home/<user>/www/api.example.co.uk/main.py
-    WSGIDaemonProcess api eviction-timeout=30 graceful-timeout=30 header-buffer-size=327680 user=<user> group=<user> processes=1 threads=1 python-home=/home/<user>/www/api.example.co.uk/venv python-path=/home/<user>/www/api.example.co.uk/ display-name=api
-    WSGIProcessGroup api
-    LogLevel Debug
-    ErrorLog /var/log/apache2/api.example.co.uk.error.log
-    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined
-    CustomLog /var/log/apache2/api.example.co.uk.access.log combined
-
-
-    <Directory "/home/<user>/www/api.example.co.uk">
-        Order allow,deny
-        Allow from all
-        Require all granted
-    </Directory>
-
-</VirtualHost>
-```
-
 
 ### UWSGI notes
 How to run: 
