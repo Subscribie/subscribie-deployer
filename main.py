@@ -91,7 +91,7 @@ def deploy():
 
         envSettings[
             "TEMPLATE_BASE_DIR"
-        ] = f"{Path(app.config['SUBSCRIBIE_REPO_DIRECTORY'])}/subscribie/themes/"
+        ] = f"{Path(app.config['SUBSCRIBIE_REPO_DIRECTORY'])}/subscribie/themes/"  # noqa: E501
 
         envSettings["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{dstDir}data.db"
         envSettings["DB_FULL_PATH"] = f"{dstDir}data.db"
@@ -112,11 +112,15 @@ def deploy():
             "STRIPE_TEST_PUBLISHABLE_KEY"
         ] = f"{app.config['STRIPE_TEST_PUBLISHABLE_KEY']}"
 
-        envSettings["MAIL_DEFAULT_SENDER"] = f"{app.config['EMAIL_LOGIN_FROM']}"
+        envSettings[
+            "MAIL_DEFAULT_SENDER"
+        ] = f"{app.config['EMAIL_LOGIN_FROM']}"  # noqa: E501
 
         envSettings["MAIL_LOGIN_FROM"] = f"{app.config['EMAIL_LOGIN_FROM']}"
 
-        envSettings["MAIL_QUEUE_FOLDER"] = f"{app.config['EMAIL_QUEUE_FOLDER']}"
+        envSettings[
+            "MAIL_QUEUE_FOLDER"
+        ] = f"{app.config['EMAIL_QUEUE_FOLDER']}"  # noqa: E501
 
         uploadImgDst = Path(dstDir + "/uploads/")
         os.makedirs(uploadImgDst, exist_ok=True)
@@ -148,7 +152,7 @@ def deploy():
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
         subprocess.run(
-            f"export $(xargs <{envVars}; cat {envFileSrc} | envsubst > {dstDir}.env)",
+            f"export $(xargs <{envVars}; cat {envFileSrc} | envsubst > {dstDir}.env)",  # noqa: E501
             shell=True,
             env=my_env,
         )
