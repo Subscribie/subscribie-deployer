@@ -70,7 +70,7 @@ def deploy():
     try:
         # Create .env file from .env.example
         envFileSrc = Path(
-            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/.env.example"
+            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/.envsubst.template"
         )  # noqa E501
         envFileDst = Path(dstDir + "/.env")
         shutil.copy(envFileSrc, envFileDst)
