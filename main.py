@@ -145,6 +145,11 @@ def deploy():
         envSettings["SAAS_ACTIVATE_ACCOUNT_PATH"] = app.config[
             "SAAS_ACTIVATE_ACCOUNT_PATH"
         ]
+
+        envSettings["TELEGRAM_TOKEN"] = app.config["TELEGRAM_TOKEN"]
+
+        envSettings["TELEGRAM_CHAT_ID"] = app.config["TELEGRAM_TOKEN"]
+
         envSettings["TELEGRAM_PYTHON_LOG_LEVEL"] = app.config[
             "TELEGRAM_PYTHON_LOG_LEVEL"
         ]
