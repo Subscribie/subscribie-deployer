@@ -153,6 +153,9 @@ def deploy():
         envSettings["TELEGRAM_PYTHON_LOG_LEVEL"] = app.config[
             "TELEGRAM_PYTHON_LOG_LEVEL"
         ]
+        envSettings["PATH_TO_SITES"] = app.config["PATH_TO_SITES"]
+
+        envSettings["PATH_TO_RENAME_SCRIPT"] = app.config["PATH_TO_RENAME_SCRIPT"]
 
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
