@@ -116,10 +116,10 @@ def deploy():
             "MAIL_DEFAULT_SENDER"
         ] = f"{app.config['EMAIL_LOGIN_FROM']}"  # noqa: E501
 
-        envSettings["MAIL_LOGIN_FROM"] = f"{app.config['EMAIL_LOGIN_FROM']}"
+        envSettings["EMAIL_LOGIN_FROM"] = f"{app.config['EMAIL_LOGIN_FROM']}"
 
         envSettings[
-            "MAIL_QUEUE_FOLDER"
+            "EMAIL_QUEUE_FOLDER"
         ] = f"{app.config['EMAIL_QUEUE_FOLDER']}"  # noqa: E501
 
         uploadImgDst = Path(dstDir + "/uploads/")
