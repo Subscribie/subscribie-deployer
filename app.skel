@@ -1,5 +1,3 @@
 [uwsgi]
 vassal_name = %n
 vassal_dir = %d
-
-logto = /var/log/vassal-%n.log
