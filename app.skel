@@ -1,30 +1,5 @@
 [uwsgi]
+vassal_name = %n
+vassal_dir = %d
 
-# app.skel is a uwsgi config file template
-# Why .skel? It's to indicate that its a 'template' or 'skeleton' file - when a new shop is deployed, then, it gets used a a template and a valid uwsgi config file is created from it:
-# But why .skel? It's inspired from from /etc/skel/ on ubuntu which ubuntu uses when a new user is added (google ubuntu skel)
-# https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html)
-
-
-strict = true
-# %d absolute path of the directory containing the configuration file
-# See https://uwsgi-docs.readthedocs.io/en/latest/Configuration.html#magic-variables
-chdir = %d
-virtualenv = %d/subscribie/venv
-wsgi-file = %d/subscribie/subscribie.wsgi
-env = PYTHON_PATH_INJECT=/path/to/repo
-processes = 1
-threads = 2
-master = true
-vacuum = true
-# %n the filename without extension
-# NOTE filename must be uniqe (socket must be 
-# uniq per app so we use the <webaddress>.ini
-subscribe-to = /tmp/sock2:example.com
-socket = /tmp/sockets/%n.sock
-cron2 = minute=-1 curl -L example.com/admin/announce-stripe-connect
-cron2 = minute=-10 curl -L example.com/admin/refresh-subscription-statuses
-# Enable threads for threading module see subscribie.tasks
-# see https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html#a-note-on-python-threads
-enable-threads = true
-log-format = %(host) - %(addr) - %(user) [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) "%(referer)" "%(uagent)"
+logto = /var/log/vassal-%n.log
