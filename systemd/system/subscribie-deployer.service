@@ -1,16 +1,17 @@
 [Unit]
 Description=manage subscribie deployer
-After=network.target
+After=syslog.target
+
+# See https://uwsgi-docs.readthedocs.io/en/latest/Systemd.html
 
 [Service]
-Type=simple
-RemainAfterExit=true
-PIDFile=/path/to/uwsgi2.pid
-WorkingDirectory=/path/to/subscribie/
-ExecStart=/path/to/venv/bin/uwsgi --enable-threads --daemonize --ini api-subscribie.ini
-ExecStop= /usr/bin/kill 15 $MAINPID
+ExecStart=/path-to/venv/bin/uwsgi --ini api.subscribie.co.uk.ini
+WorkingDirectory=/path-to/subscribie
+RuntimeDirectory=uwsgi
+Restart=always
 KillSignal=SIGQUIT
-Restart=on-abort
+Type=notify
+StandardError=syslog
+NotifyAccess=all
 [Install]
 WantedBy=multi-user.target
-
