@@ -53,7 +53,7 @@ def sed_inplace(filename, pattern, repl):
 @app.route("/deploy", methods=["GET", "POST"])
 def deploy():
     logging.info("New site request recieved")
-    payload = json.loads(request.data)
+    payload = json.loads(request.json)
     filename = re.sub(r"\W+", "", payload["company"]["name"])
     webaddress = filename.lower() + "." + app.config["SUBSCRIBIE_DOMAIN"]
     # Create directory for site
