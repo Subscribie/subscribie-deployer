@@ -19,6 +19,7 @@ load_dotenv(verbose=True)
 logging.basicConfig(level="DEBUG")
 
 app = Flask(__name__)
+app.config.update(os.environ)
 
 db = SQLAlchemy()
 db.init_app(app)
