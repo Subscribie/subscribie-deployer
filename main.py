@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import errno
 import shutil
 import re
@@ -14,16 +15,13 @@ from uuid import uuid4
 import logging
 import tempfile
 
+load_dotenv(verbose=True)
 logging.basicConfig(level="DEBUG")
 
 app = Flask(__name__)
 
 db = SQLAlchemy()
 db.init_app(app)
-
-# Load .env settings
-curDir = os.path.dirname(os.path.realpath(__file__))
-app.config.from_pyfile("/".join([curDir, ".env"]))
 
 
 def sed_inplace(filename, pattern, repl):
