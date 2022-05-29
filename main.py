@@ -163,7 +163,9 @@ def deploy():
         ]
         envSettings["PATH_TO_SITES"] = app.config["PATH_TO_SITES"]
 
-        envSettings["PATH_TO_RENAME_SCRIPT"] = app.config["PATH_TO_RENAME_SCRIPT"]
+        envSettings["PATH_TO_RENAME_SCRIPT"] = app.config[
+            "PATH_TO_RENAME_SCRIPT"
+        ]  # noqa: E501
 
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
@@ -214,7 +216,8 @@ def deploy():
     # Set default_currency
     breakpoint()
     cur.execute(
-        "INSERT INTO setting (default_currency) VALUES (?)", (default_currency,)
+        "INSERT INTO setting (default_currency) VALUES (?)",
+        (default_currency,),  # noqa: E501
     )  # noqa: E501
 
     con.commit()
