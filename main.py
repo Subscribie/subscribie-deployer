@@ -56,6 +56,15 @@ def deploy():
     payload = json.loads(request.data)
     filename = re.sub(r"\W+", "", payload["company"]["name"])
     webaddress = filename.lower() + "." + app.config["SUBSCRIBIE_DOMAIN"]
+    # Country code
+    country_code = payload.get("country_code", "GB")
+    if country_code is None:
+        logging.warning("Defaulting to country_code GB")
+
+    # Determin default currency
+    country_to_currency_code = {"GB": "GBP", "US": "USD"}
+    default_currency = country_to_currency_code[country_code]
+
     # Create directory for site
     try:
         dstDir = app.config["SITES_DIRECTORY"] + webaddress + "/"
@@ -202,6 +211,12 @@ def deploy():
     )
     cur.execute("UPDATE user set login_token = ?", (login_token,))  # noqa: E501
     cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
+    # Set default_currency
+    breakpoint()
+    cur.execute(
+        "INSERT INTO setting (default_currency) VALUES (?)", (default_currency,)
+    )  # noqa: E501
+
     con.commit()
     con.close()
 
