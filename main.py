@@ -214,7 +214,6 @@ def deploy():
     cur.execute("UPDATE user set login_token = ?", (login_token,))  # noqa: E501
     cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
     # Set default_currency
-    breakpoint()
     cur.execute(
         "INSERT INTO setting (default_currency) VALUES (?)",
         (default_currency,),  # noqa: E501
