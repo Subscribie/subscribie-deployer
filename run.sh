@@ -1,3 +1,1 @@
-export FLASK_APP=main.py
-export FLASK_DEBUG=1
-flask run --host=0.0.0.0 --port=5001
+uvicorn --reload main:app --host 0.0.0.0 --port 5001
