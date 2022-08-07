@@ -1,0 +1,22 @@
+[Unit]
+Description=manage subscribie deployer
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path-to/subscribie-deployer
+PrivateTmp=true
+EnvironmentFile=/path-to/subscribie-deployer/.env
+
+ExecStart=/path-to/subscribie-deployer/venv/bin/uvicorn \
+        --proxy-headers \
+        --workers=4 \
+        --host=127.0.0.1 \
+        --port=8002 \
+        main:app
+ExecReload=/bin/kill -HUP ${MAINPID}
+RestartSec=1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
