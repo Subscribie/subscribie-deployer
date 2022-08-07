@@ -4,25 +4,21 @@ import errno
 import shutil
 import re
 import subprocess
-from flask import Flask, request
 from werkzeug.security import generate_password_hash
-import json
 import sqlite3
 import datetime
 from pathlib import Path
-from flask_sqlalchemy import SQLAlchemy
 from uuid import uuid4
 import logging
 import tempfile
 
+from starlette.applications import Starlette
+from starlette.routing import Route
+from starlette.responses import JSONResponse
+from starlette.responses import PlainTextResponse
+
 load_dotenv(verbose=True)
 logging.basicConfig(level="DEBUG")
-
-app = Flask(__name__)
-app.config.update(os.environ)
-
-db = SQLAlchemy()
-db.init_app(app)
 
 
 def sed_inplace(filename, pattern, repl):
@@ -49,13 +45,11 @@ def sed_inplace(filename, pattern, repl):
     shutil.move(tmp_file.name, filename)
 
 
-@app.route("/", methods=["GET", "POST"])
-@app.route("/deploy", methods=["GET", "POST"])
-def deploy():
+async def deploy(request):
     logging.info("New site request recieved")
-    payload = json.loads(request.data)
+    payload = await request.json()
     filename = re.sub(r"\W+", "", payload["company"]["name"])
-    webaddress = filename.lower() + "." + app.config["SUBSCRIBIE_DOMAIN"]
+    webaddress = filename.lower() + "." + os.getenv("SUBSCRIBIE_DOMAIN")
     # Country code
     country_code = payload.get("country_code", "GB")
     if country_code is None:
@@ -67,10 +61,12 @@ def deploy():
 
     # Create directory for site
     try:
-        dstDir = app.config["SITES_DIRECTORY"] + webaddress + "/"
+        dstDir = os.getenv("SITES_DIRECTORY") + webaddress + "/"
         if Path(dstDir).exists():
-            print("Site {} already exists. Exiting...".format(webaddress))
-            exit()
+            msg = f"Site {webaddress} already exists. Exiting..."
+            logging.warning(msg)
+            response = JSONResponse({msg: msg})
+            return response
         os.mkdir(dstDir)
     except OSError as e:
         if e.errno != errno.EEXIST:
@@ -78,7 +74,7 @@ def deploy():
     try:
         # Create .env file from .env.example
         envFileSrc = Path(
-            app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/.envsubst.template"
+            os.getenv("SUBSCRIBIE_REPO_DIRECTORY") + "/.envsubst.template"
         )  # noqa E501
         envFileDst = Path(dstDir + "/.env")
         shutil.copy(envFileSrc, envFileDst)
@@ -87,7 +83,7 @@ def deploy():
 
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
-        ] = f"{app.config['SUBSCRIBIE_REPO_DIRECTORY']}"
+        ] = f"{os.getenv('SUBSCRIBIE_REPO_DIRECTORY')}"
 
         envSettings["SERVER_NAME"] = webaddress
 
@@ -99,36 +95,36 @@ def deploy():
 
         envSettings[
             "TEMPLATE_BASE_DIR"
-        ] = f"{Path(app.config['SUBSCRIBIE_REPO_DIRECTORY'])}/subscribie/themes/"  # noqa: E501
+        ] = f"{Path(os.getenv('SUBSCRIBIE_REPO_DIRECTORY'))}/subscribie/themes/"  # noqa: E501
 
         envSettings["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{dstDir}data.db"
         envSettings["DB_FULL_PATH"] = f"{dstDir}data.db"
 
         envSettings[
             "STRIPE_LIVE_SECRET_KEY"
-        ] = f"{app.config['STRIPE_LIVE_SECRET_KEY']}"
+        ] = f"{os.getenv('STRIPE_LIVE_SECRET_KEY')}"  # noqa: E501
 
         envSettings[
             "STRIPE_LIVE_PUBLISHABLE_KEY"
-        ] = f"{app.config['STRIPE_LIVE_PUBLISHABLE_KEY']}"
+        ] = f"{os.getenv('STRIPE_LIVE_PUBLISHABLE_KEY')}"
 
         envSettings[
             "STRIPE_TEST_SECRET_KEY"
-        ] = f"{app.config['STRIPE_TEST_SECRET_KEY']}"
+        ] = f"{os.getenv('STRIPE_TEST_SECRET_KEY')}"  # noqa: E501
 
         envSettings[
             "STRIPE_TEST_PUBLISHABLE_KEY"
-        ] = f"{app.config['STRIPE_TEST_PUBLISHABLE_KEY']}"
+        ] = f"{os.getenv('STRIPE_TEST_PUBLISHABLE_KEY')}"
 
         envSettings[
             "MAIL_DEFAULT_SENDER"
-        ] = f"{app.config['EMAIL_LOGIN_FROM']}"  # noqa: E501
+        ] = f"{os.getenv('EMAIL_LOGIN_FROM')}"  # noqa: E501
 
-        envSettings["EMAIL_LOGIN_FROM"] = f"{app.config['EMAIL_LOGIN_FROM']}"
+        envSettings["EMAIL_LOGIN_FROM"] = f"{os.getenv('EMAIL_LOGIN_FROM')}"
 
         envSettings[
             "EMAIL_QUEUE_FOLDER"
-        ] = f"{app.config['EMAIL_QUEUE_FOLDER']}"  # noqa: E501
+        ] = f"{os.getenv('EMAIL_QUEUE_FOLDER')}"  # noqa: E501
 
         uploadImgDst = Path(dstDir + "/uploads/")
         os.makedirs(uploadImgDst, exist_ok=True)
@@ -146,26 +142,26 @@ def deploy():
 
         envSettings[
             "STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST"
-        ] = f"{app.config['STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST']}"
+        ] = f"{os.getenv('STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST')}"
 
-        envSettings["SAAS_URL"] = app.config["SAAS_URL"]
-        envSettings["SAAS_API_KEY"] = app.config["SAAS_API_KEY"]
-        envSettings["SAAS_ACTIVATE_ACCOUNT_PATH"] = app.config[
+        envSettings["SAAS_URL"] = os.getenv("SAAS_URL")
+        envSettings["SAAS_API_KEY"] = os.getenv("SAAS_API_KEY")
+        envSettings["SAAS_ACTIVATE_ACCOUNT_PATH"] = os.getenv(
             "SAAS_ACTIVATE_ACCOUNT_PATH"
-        ]
+        )
 
-        envSettings["TELEGRAM_TOKEN"] = app.config["TELEGRAM_TOKEN"]
+        envSettings["TELEGRAM_TOKEN"] = os.getenv("TELEGRAM_TOKEN")
 
-        envSettings["TELEGRAM_CHAT_ID"] = app.config["TELEGRAM_TOKEN"]
+        envSettings["TELEGRAM_CHAT_ID"] = os.getenv("TELEGRAM_TOKEN")
 
-        envSettings["TELEGRAM_PYTHON_LOG_LEVEL"] = app.config[
+        envSettings["TELEGRAM_PYTHON_LOG_LEVEL"] = os.getenv(
             "TELEGRAM_PYTHON_LOG_LEVEL"
-        ]
-        envSettings["PATH_TO_SITES"] = app.config["PATH_TO_SITES"]
+        )
+        envSettings["PATH_TO_SITES"] = os.getenv("PATH_TO_SITES")
 
-        envSettings["PATH_TO_RENAME_SCRIPT"] = app.config[
+        envSettings["PATH_TO_RENAME_SCRIPT"] = os.getenv(
             "PATH_TO_RENAME_SCRIPT"
-        ]  # noqa: E501
+        )  # noqa: E501
 
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
@@ -186,7 +182,7 @@ def deploy():
     # Migrate the database
     # Copy over empty db schema
     shutil.copy(
-        Path(app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/data.db"), dstDir
+        Path(os.getenv("SUBSCRIBIE_REPO_DIRECTORY") + "/data.db"), dstDir
     )  # noqa: E501
 
     # Seed users table with site owners email address & password so can login
@@ -345,29 +341,29 @@ def deploy():
     sed_inplace(
         vassalConfigFile,
         r"cron2.*announce-stripe-connect",
-        fr"cron2 = minute=-1 curl -L {webaddress}\/admin\/announce-stripe-connect\n",  # noqa: E501
+        rf"cron2 = minute=-1 curl -L {webaddress}\/admin\/announce-stripe-connect\n",  # noqa: E501
     )
 
     sed_inplace(
         vassalConfigFile,
         r"cron2.*refresh-subscription-statuses",
-        fr"cron2 = minute=-10 curl -L {webaddress}\/admin\/refresh-subscription-statuses\n",  # noqa: E501
+        rf"cron2 = minute=-10 curl -L {webaddress}\/admin\/refresh-subscription-statuses\n",  # noqa: E501
     )
 
     sed_inplace(
         vassalConfigFile,
         r"^virtualenv.*",
-        fr'virtualenv = {app.config["PYTHON_VENV_DIRECTORY"]}\n',  # noqa: E501
+        rf'virtualenv = {os.getenv("PYTHON_VENV_DIRECTORY")}\n',  # noqa: E501
     )
 
     sed_inplace(
         vassalConfigFile,
         r"^env.*",
-        f'env = PYTHON_PATH_INJECT={app.config["SUBSCRIBIE_REPO_DIRECTORY"]}\n',  # noqa: E501
+        f'env = PYTHON_PATH_INJECT={os.getenv("SUBSCRIBIE_REPO_DIRECTORY")}\n',  # noqa: E501
     )
 
     wsgiFile = Path(
-        app.config["SUBSCRIBIE_REPO_DIRECTORY"] + "/subscribie.wsgi"
+        os.getenv("SUBSCRIBIE_REPO_DIRECTORY") + "/subscribie.wsgi"
     )  # noqa: E501
     sed_inplace(
         vassalConfigFile,
@@ -377,7 +373,12 @@ def deploy():
 
     login_url = "".join(["https://", webaddress, "/auth/login/", login_token])
 
-    return login_url
+    return PlainTextResponse(login_url)
 
 
-application = app
+routes = [
+    Route("/", endpoint=deploy, methods=["GET", "POST"]),
+    Route("/deploy", endpoint=deploy, methods=["GET", "POST"]),
+]
+
+app = Starlette(routes=routes)

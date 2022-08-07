@@ -1,6 +1,6 @@
 # Subscribie Deployer 
 
-Standalone flask app which receives a new site build request, and builds
+Standalone starlette app which receives a new site build request, and builds
 the site. (ref https://github.com/Subscribie/module-builder/issues/7)
 
 Responsible for building new subscribie sites.
@@ -95,4 +95,9 @@ server {
   ProxyPass / uwsgi://127.0.0.1:8001/
 
 </VirtualHost>
+```
+
+# Test
+```
+curl http://127.0.0.1:5001/ -d '{"company": {"name": "My Test Shop"}, "users": ["sam@example.com"], "password": "123", "plans": [{"title": "Hair Gel", "description": "Luxuary hair gel", "interval_amount": 100, "interval_unit": "monthly", "sell_price": 1500}]}'
 ```
