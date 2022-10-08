@@ -50,13 +50,61 @@ async def deploy(request):
     payload = await request.json()
     filename = re.sub(r"\W+", "", payload["company"]["name"])
     webaddress = filename.lower() + "." + os.getenv("SUBSCRIBIE_DOMAIN")
-    # Country code
-    country_code = payload.get("country_code", "GB")
-    if country_code is None:
-        logging.warning("Defaulting to country_code GB")
+    # Country code list
+    supported_countries_list = {
+        "US",
+        "GB",
+        "AT",
+        "BE",
+        "CY",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GR",
+        "IE",
+        "IT",
+        "LV",
+        "LT",
+        "LU",
+        "MT",
+        "NL",
+        "PT",
+        "SK",
+        "SI",
+        "ES",
+    }
+    country_code = payload.get("country_code")
+
+    # country code
+    if country_code is None or country_code not in supported_countries_list:
+        country_code = "US"
+        logging.warning("Defaulting to country_code US")
 
     # Determin default currency
-    country_to_currency_code = {"GB": "GBP", "US": "USD"}
+    country_to_currency_code = {
+        "US": "USD",
+        "GB": "GBP",
+        "AT": "EUR",
+        "BE": "EUR",
+        "CY": "EUR",
+        "EE": "EUR",
+        "FI": "EUR",
+        "FR": "EUR",
+        "DE": "EUR",
+        "GR": "EUR",
+        "IE": "EUR",
+        "IT": "EUR",
+        "LV": "EUR",
+        "LT": "EUR",
+        "LU": "EUR",
+        "MT": "EUR",
+        "NL": "EUR",
+        "PT": "EUR",
+        "SK": "EUR",
+        "SI": "EUR",
+        "ES": "EUR",
+    }
     default_currency = country_to_currency_code[country_code]
 
     # Create directory for site
