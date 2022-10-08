@@ -1,4 +1,4 @@
 python-dotenv==0.20.0
 starlette==0.21.0
-uvicorn==0.18.2
+uvicorn==0.18.3
 Werkzeug==2.2.2
