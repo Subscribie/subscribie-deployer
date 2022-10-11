@@ -1,0 +1,13 @@
+services:
+  subscribie-deployer:
+    image: subscribie/deployer
+    build:
+      context: ./src/subscribie-deployer
+    ports:
+      - "5001:5001"
+  subscribie-server:
+    image: subscribie/subscribie-server
+    build:
+      context: ./src/subscribie-server
+    ports:
+      - "8080:80"

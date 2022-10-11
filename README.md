@@ -16,6 +16,24 @@ Responsible for building new subscribie sites.
 - Each site runs as a uwsgi 'vassal' which allows new sites to come online
   without having to restart the web server
 
+# Local development using `podman-compose`
+
+1. [Install `podman`](https://podman.io/getting-started/installation)
+2. Install `podman-compose`:
+   ```
+   python3 -m venv venv;
+   . venv/bin/activate
+   pip install podman-compose
+   ```
+
+Start `subscribie-deployer` & `subscribie-server`
+
+```
+./run.sh
+```
+
+`subscribie-server` is responsible for hosting shops.
+
 ## Configuration
 
 #### Create virtual env & install requirements: 

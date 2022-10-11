@@ -1,1 +1,6 @@
-uvicorn --reload main:app --host 0.0.0.0 --port 5001
+#!/bin/bash
+
+set -euxo pipefail
+
+podman-compose up --build --force-recreate
+#docker-compose -f compose.yaml up --build --force-recreate
