@@ -110,6 +110,7 @@ async def deploy(request):
     # Create directory for site
     try:
         dstDir = os.getenv("SITES_DIRECTORY") + webaddress + "/"
+        logging.debug(f"dstDir is set to {dstDir}")
         if Path(dstDir).exists():
             msg = f"Site {webaddress} already exists. Exiting..."
             logging.warning(msg)
@@ -124,11 +125,13 @@ async def deploy(request):
         envFileSrc = Path(
             os.getenv("SUBSCRIBIE_REPO_DIRECTORY") + "/.envsubst.template"
         )  # noqa E501
+        logging.debug(f"envFileSrc is: {envFileSrc}")
+
         envFileDst = Path(dstDir + "/.env")
+        logging.debug(f"envFileDst is: {envFileDst}")
         shutil.copy(envFileSrc, envFileDst)
         # Build envSettings vars
         envSettings = {}
-
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
         ] = f"{os.getenv('SUBSCRIBIE_REPO_DIRECTORY')}"
