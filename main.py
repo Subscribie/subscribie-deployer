@@ -74,11 +74,13 @@ async def deploy(request):
         "SI",
         "ES",
     }
-    country_code = payload.get("country_code")
-
+    default_country_code = payload.get("country_code")
     # country code
-    if country_code is None or country_code not in supported_countries_list:
-        country_code = "US"
+    if (
+        default_country_code is None
+        or default_country_code not in supported_countries_list
+    ):
+        default_country_code = "US"
         logging.warning("Defaulting to country_code US")
 
     # Determin default currency
@@ -105,7 +107,7 @@ async def deploy(request):
         "SI": "EUR",
         "ES": "EUR",
     }
-    default_currency = country_to_currency_code[country_code]
+    default_currency = country_to_currency_code[default_country_code]
 
     # Create directory for site
     try:
@@ -262,38 +264,24 @@ async def deploy(request):
     cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
     # Set default_currency
     cur.execute(
-        "INSERT INTO setting (default_currency) VALUES (?)",
-        (default_currency,),  # noqa: E501
+        "INSERT INTO setting (default_currency, default_country_code) VALUES (?,?)",
+        (
+            default_currency,
+            default_country_code,
+        ),  # noqa: E501
     )  # noqa: E501
 
-    con.commit()
-    con.close()
-
     # Seed company table
-    con = sqlite3.connect(dstDir + "data.db")
-    con.text_factory = str
-    cur = con.cursor()
     now = datetime.datetime.now()
     company_name = payload["company"]["name"]
     cur.execute(
         "INSERT INTO company (created_at, name) VALUES (?,?)",
         (now, company_name),  # noqa: E501
     )
-    con.commit()
-    con.close()
-
     # Seed integration table
-    con = sqlite3.connect(dstDir + "data.db")
-    con.text_factory = str
-    cur = con.cursor()
     cur.execute("INSERT INTO integration (id) VALUES(1)")
-    con.commit()
-    con.close()
 
     # Seed the plan table
-    con = sqlite3.connect(dstDir + "data.db")
-    con.text_factory = str
-    cur = con.cursor()
     now = datetime.datetime.now()
     title = payload["plans"][0]["title"]
     try:
