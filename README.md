@@ -72,8 +72,7 @@ server {
     # max upload size
 
     location / {
-        #include /etc/nginx/uwsgi_params;
-        uwsgi_pass unix:///tmp/sock1;
+        proxy_pass http://127.0.0.1:8002/;
     }
 }
 ```
@@ -92,7 +91,7 @@ server {
 
   ServerName example.com
   ServerAlias *.example.com
-  ProxyPass / uwsgi://127.0.0.1:8001/
+  ProxyPass / http://127.0.0.1:8002/
 
 </VirtualHost>
 ```
