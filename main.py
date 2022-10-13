@@ -216,6 +216,10 @@ async def deploy(request):
             "PATH_TO_RENAME_SCRIPT"
         )  # noqa: E501
 
+        envSettings["SUPPORTED_CURRENCIES"] = os.getenv(
+            "SUPPORTED_CURRENCIES"
+        )  # noqa: E501
+
         envVars = "\n".join(map(str, envSettings))
         my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
         subprocess.run(
