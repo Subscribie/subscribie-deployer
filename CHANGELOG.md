@@ -1,3 +1,15 @@
+# v0.0.2 (Mon Oct 31 2022)
+
+#### ⚠️ Pushed to `main`
+
+- Update .autorc ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.1 (Mon Oct 31 2022)
 
 :tada: This release contains work from new contributors! :tada:
