@@ -1,3 +1,15 @@
+# v0.0.4 (Fri Jan 06 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Add #!/bin/sh to run.sh ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.3 (Tue Nov 01 2022)
 
 #### ⚠️ Pushed to `main`
