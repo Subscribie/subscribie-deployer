@@ -21,6 +21,12 @@ load_dotenv(verbose=True)
 logging.basicConfig(level="DEBUG")
 
 
+class EnvSettings(dict):
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        logging.info(f"Setting key: {key}, to value {value}")
+
+
 def sed_inplace(filename, pattern, repl):
     """
     Perform the pure-Python equivalent of in-place `sed` substitution: e.g.,
@@ -133,7 +139,8 @@ async def deploy(request):
         logging.debug(f"envFileDst is: {envFileDst}")
         shutil.copy(envFileSrc, envFileDst)
         # Build envSettings vars
-        envSettings = {}
+        envSettings = EnvSettings()
+        envSettings["FLASK_ENV"] = os.getenv("FLASK_ENV")
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
         ] = f"{os.getenv('SUBSCRIBIE_REPO_DIRECTORY')}"
