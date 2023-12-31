@@ -1,3 +1,15 @@
+# v0.0.5 (Sun Dec 31 2023)
+
+#### ⚠️ Pushed to `main`
+
+- Log EnvSettings setitem, default port 8002, Telegram logging, FlaskEnv ([@chrisjsimpson](https://github.com/chrisjsimpson))
+
+#### Authors: 1
+
+- [@chrisjsimpson](https://github.com/chrisjsimpson)
+
+---
+
 # v0.0.4 (Fri Jan 06 2023)
 
 #### ⚠️ Pushed to `main`
