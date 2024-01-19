@@ -141,6 +141,9 @@ async def deploy(request):
         # Build envSettings vars
         envSettings = EnvSettings()
         envSettings["FLASK_ENV"] = os.getenv("FLASK_ENV")
+        envSettings["PERMANENT_SESSION_LIFETIME"] = os.getenv(
+            "PERMANENT_SESSION_LIFETIME"
+        )
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
         ] = f"{os.getenv('SUBSCRIBIE_REPO_DIRECTORY')}"
