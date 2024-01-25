@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import errno
 import shutil
 import re
-import subprocess
 from werkzeug.security import generate_password_hash
 import sqlite3
 import datetime
@@ -16,9 +15,92 @@ from starlette.applications import Starlette
 from starlette.routing import Route
 from starlette.responses import JSONResponse
 from starlette.responses import PlainTextResponse
+from strictyaml import (
+    load,
+    as_document,
+    Map,
+    Str,
+    Bool,
+    Url,
+    Regex,
+    Int,
+    Email,
+    CommaSeparated,
+)
 
 load_dotenv(verbose=True)
 logging.basicConfig(level="DEBUG")
+
+"""
+Generate a valid shop (vassal) settings
+against strictyaml schema fro subscribie.settings schema
+
+Example post request:
+
+curl 'http://127.0.0.1:8002' -d '{"company": {"name": "ACME Corp"}, "users": ["fred@example.com"], "password": "changeme", "plans": [{"title": "Soap", "description": "Best soap ever", "interval_amount": 5000, "interval_unit": "monthly", "sell_price": 1000}], "login_token": "changeme"}'  # noqa: E501
+
+gist:
+ .. build new settings dict
+ settings = as_document(settings)
+ # Load and validate against schema
+ load(settings.as_yaml(), schema)
+"""
+
+# TODO package subscribie properly and import from subscribie.settings,
+# adding subscribie as a dependency
+schema = Map(
+    {
+        "FLASK_ENV": Str(),
+        "SAAS_URL": Url(),
+        "SAAS_API_KEY": Str(),
+        "SAAS_ACTIVATE_ACCOUNT_PATH": Str(),
+        "SUBSCRIBIE_REPO_DIRECTORY": Str(),
+        "SQLALCHEMY_TRACK_MODIFICATIONS": Bool(),
+        "SQLALCHEMY_DATABASE_URI": Regex("sqlite:////.*"),
+        "SECRET_KEY": Str(),
+        "DB_FULL_PATH": Str(),
+        "MODULES_PATH": Str(),
+        "TEMPLATE_BASE_DIR": Str(),
+        "THEME_NAME": Str(),
+        "CUSTOM_PAGES_PATH": Str(),
+        "UPLOADED_IMAGES_DEST": Str(),
+        "UPLOADED_FILES_DEST": Str(),
+        "MAX_CONTENT_LENGTH": Str(),
+        "SUCCESS_REDIRECT_URL": Str(),
+        "THANKYOU_URL": Str(),
+        "EMAIL_LOGIN_FROM": Str(),
+        "EMAIL_QUEUE_FOLDER": Str(),
+        "SERVER_NAME": Str(),
+        "PERMANENT_SESSION_LIFETIME": Int(),
+        "MAIL_DEFAULT_SENDER": Email(),
+        "STRIPE_LIVE_PUBLISHABLE_KEY": Regex("pk_live_..*"),
+        "STRIPE_LIVE_SECRET_KEY": Regex("sk_live_..*"),
+        "STRIPE_TEST_PUBLISHABLE_KEY": Regex("pk_test_..*"),
+        "STRIPE_TEST_SECRET_KEY": Regex("sk_test_..*"),
+        "STRIPE_CONNECT_ACCOUNT_ANNOUNCER_HOST": Url(),
+        "PYTHON_LOG_LEVEL": Str(),
+        "PLAYWRIGHT_HOST": Url(),
+        "PLAYWRIGHT_HEADLESS": Bool(),
+        "PATH_TO_SITES": Str(),
+        "PATH_TO_RENAME_SCRIPT": Str(),
+        "SUBSCRIBIE_DOMAIN": Str(),
+        "PRIVATE_KEY": Str(),
+        "PUBLIC_KEY": Str(),
+        "SUPPORTED_CURRENCIES": CommaSeparated(Str()),
+        "ANTI_SPAM_SHOP_NAMES_MODEL_FULL_PATH": Str(),
+        "TELEGRAM_TOKEN": Str(),
+        "TELEGRAM_CHAT_ID": Str(),
+        "TELEGRAM_PYTHON_LOG_LEVEL": Str(),
+        "TEST_SHOP_OWNER_EMAIL_ISSUE_704": Email(),
+        "TEST_SHOP_OWNER_LOGIN_URL": Url(),
+    }
+)
+
+
+# Load application settings according to schema
+
+# Schema for Subscribie application settings
+# See also https://hitchdev.com/strictyaml/
 
 
 class EnvSettings(dict):
@@ -129,15 +211,9 @@ async def deploy(request):
         if e.errno != errno.EEXIST:
             raise
     try:
-        # Create .env file from .env.example
-        envFileSrc = Path(
-            os.getenv("SUBSCRIBIE_REPO_DIRECTORY") + "/.envsubst.template"
-        )  # noqa E501
-        logging.debug(f"envFileSrc is: {envFileSrc}")
-
-        envFileDst = Path(dstDir + "/.env")
-        logging.debug(f"envFileDst is: {envFileDst}")
-        shutil.copy(envFileSrc, envFileDst)
+        # Create settings.yaml file
+        settingsYAMLFile = Path(dstDir + "/settings.yaml")
+        logging.debug(f"settingsYAMLFile is: {settingsYAMLFile}")
         # Build envSettings vars
         envSettings = EnvSettings()
         envSettings["FLASK_ENV"] = os.getenv("FLASK_ENV")
@@ -151,7 +227,7 @@ async def deploy(request):
         envSettings["SERVER_NAME"] = webaddress
 
         custom_pages_path = Path(dstDir + "/custom_pages/")
-        envSettings["CUSTOM_PAGES_PATH"] = custom_pages_path
+        envSettings["CUSTOM_PAGES_PATH"] = str(custom_pages_path)
 
         if Path(custom_pages_path).exists() is False:
             os.mkdir(custom_pages_path)
@@ -161,6 +237,9 @@ async def deploy(request):
         ] = f"{Path(os.getenv('SUBSCRIBIE_REPO_DIRECTORY'))}/subscribie/themes/"  # noqa: E501
 
         envSettings["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{dstDir}data.db"
+        envSettings["SQLALCHEMY_TRACK_MODIFICATIONS"] = os.getenv(
+            "SQLALCHEMY_TRACK_MODIFICATIONS"
+        )  # noqa: E501
         envSettings["DB_FULL_PATH"] = f"{dstDir}data.db"
 
         envSettings[
@@ -194,8 +273,8 @@ async def deploy(request):
         uploadedFilesDst = Path(dstDir + "/uploads/")
         os.makedirs(uploadedFilesDst, exist_ok=True)
 
-        envSettings["UPLOADED_IMAGES_DEST"] = uploadImgDst
-        envSettings["UPLOADED_FILES_DEST"] = uploadedFilesDst
+        envSettings["UPLOADED_IMAGES_DEST"] = str(uploadImgDst)
+        envSettings["UPLOADED_FILES_DEST"] = str(uploadedFilesDst)
 
         successRedirectUrl = "https://" + webaddress + "/complete_mandate"
         envSettings["SUCCESS_REDIRECT_URL"] = successRedirectUrl
@@ -230,13 +309,43 @@ async def deploy(request):
             "SUPPORTED_CURRENCIES"
         )  # noqa: E501
 
-        envVars = "\n".join(map(str, envSettings))
-        my_env = {**os.environ.copy(), **envSettings}  # Merge dicts
-        subprocess.run(
-            f"export $(xargs <{envVars}; cat {envFileSrc} | envsubst > {dstDir}.env)",  # noqa: E501
-            shell=True,
-            env=my_env,
-        )
+        envSettings["ANTI_SPAM_SHOP_NAMES_MODEL_FULL_PATH"] = os.getenv(
+            "ANTI_SPAM_SHOP_NAMES_MODEL_FULL_PATH"
+        )  # noqa: E501
+
+        envSettings["MAX_CONTENT_LENGTH"] = os.getenv(
+            "MAX_CONTENT_LENGTH"
+        )  # noqa: E501
+
+        envSettings["MODULES_PATH"] = os.getenv("MODULES_PATH")  # noqa: E501
+
+        envSettings["PLAYWRIGHT_HEADLESS"] = os.getenv(
+            "PLAYWRIGHT_HEADLESS"
+        )  # noqa: E501
+
+        envSettings["PLAYWRIGHT_HOST"] = os.getenv("PLAYWRIGHT_HOST")  # noqa: E501
+
+        envSettings["PUBLIC_KEY"] = os.getenv("PUBLIC_KEY")  # noqa: E501
+
+        envSettings["PRIVATE_KEY"] = os.getenv("PRIVATE_KEY")  # noqa: E501
+        envSettings["PYTHON_LOG_LEVEL"] = os.getenv("PYTHON_LOG_LEVEL")  # noqa: E501
+
+        envSettings["SECRET_KEY"] = os.getenv("SECRET_KEY")  # noqa: E501
+        envSettings["SUBSCRIBIE_DOMAIN"] = os.getenv("SUBSCRIBIE_DOMAIN")  # noqa: E501
+        envSettings["TEST_SHOP_OWNER_EMAIL_ISSUE_704"] = os.getenv(
+            "TEST_SHOP_OWNER_EMAIL_ISSUE_704"
+        )  # noqa: E501
+        envSettings["TEST_SHOP_OWNER_LOGIN_URL"] = os.getenv(
+            "TEST_SHOP_OWNER_LOGIN_URL"
+        )  # noqa: E501
+
+        envSettings["THEME_NAME"] = os.getenv("THEME_NAME")  # noqa: E501
+
+        newShopSettings = as_document(envSettings)
+        # Attempt to validate new Shop schema
+        shopSettings = load(newShopSettings.as_yaml(), schema)
+        with open(settingsYAMLFile, "w") as fp:
+            fp.write(shopSettings.as_yaml())
 
     except KeyError as e:
         print(f"KeyError missing config? {e}")
@@ -278,7 +387,7 @@ async def deploy(request):
     cur.execute("INSERT INTO payment_provider (stripe_active) VALUES(0)")  # noqa: E501
     # Set default_currency
     cur.execute(
-        "INSERT INTO setting (default_currency, default_country_code) VALUES (?,?)",
+        "INSERT INTO setting (default_currency, default_country_code) VALUES (?,?)",  # noqa: E501
         (
             default_currency,
             default_country_code,
@@ -318,15 +427,15 @@ async def deploy(request):
 
     cur.execute(
         """INSERT INTO plan
-                (created_at, archived, uuid,
-                title,
-                description,
-                sell_price,
-                interval_amount,
-                interval_unit,
-                trial_period_days,
-                private)
-                VALUES (?,?,?,?,?,?,?,?,?,?)""",
+               (created_at, archived, uuid,
+               title,
+               description,
+               sell_price,
+               interval_amount,
+               interval_unit,
+               trial_period_days,
+               private)
+               VALUES (?,?,?,?,?,?,?,?,?,?)""",
         (
             now,
             archived,
@@ -354,9 +463,9 @@ async def deploy(request):
     # Item requirements
     cur.execute(
         """INSERT INTO plan_requirements (id , created_at, plan_id,
-                    instant_payment, subscription)
-                 VALUES ( 1, ?, 1, ?, ?)
-                 """,
+                   instant_payment, subscription)
+                VALUES ( 1, ?, 1, ?, ?)
+                """,
         (now, requires_instant_payment, requires_subscription),
     )
 
@@ -366,8 +475,8 @@ async def deploy(request):
 
     cur.executemany(
         """INSERT INTO plan_selling_points
-                    (id, created_at, point, plan_id)
-                    VALUES (?, ?, ?, ?)""",
+                   (id, created_at, point, plan_id)
+                   VALUES (?, ?, ?, ?)""",
         points,
     )
     con.commit()
