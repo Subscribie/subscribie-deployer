@@ -26,6 +26,7 @@ from strictyaml import (
     Int,
     Email,
     CommaSeparated,
+    YAMLError,
 )
 
 load_dotenv(verbose=True)
@@ -343,7 +344,11 @@ async def deploy(request):
 
         newShopSettings = as_document(envSettings)
         # Attempt to validate new Shop schema
-        shopSettings = load(newShopSettings.as_yaml(), schema)
+        try:
+            shopSettings = load(newShopSettings.as_yaml(), schema)
+        except YAMLError as error:
+            logging.error(error)
+            exit(1)
         with open(settingsYAMLFile, "w") as fp:
             fp.write(shopSettings.as_yaml())
 
