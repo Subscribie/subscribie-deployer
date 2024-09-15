@@ -144,6 +144,12 @@ async def deploy(request):
         envSettings["PERMANENT_SESSION_LIFETIME"] = os.getenv(
             "PERMANENT_SESSION_LIFETIME"
         )
+        envSettings["SENTRY_SDK_DSN"] = os.getenv(
+            "SENTRY_SDK_DSN"
+        )
+        envSettings["SENTRY_SDK_SESSION_REPLAY_ID"] = os.getenv(
+            "SENTRY_SDK_SESSION_REPLAY_ID"
+        )
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
         ] = f"{os.getenv('SUBSCRIBIE_REPO_DIRECTORY')}"
