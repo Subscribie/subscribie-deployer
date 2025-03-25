@@ -52,6 +52,8 @@ gist:
 schema = Map(
     {
         "FLASK_ENV": Str(),
+        "SENTRY_SDK_DSN": Str(),
+        "SENTRY_SDK_SESSION_REPLAY_ID": Str(),
         "SAAS_URL": Url(),
         "SAAS_API_KEY": Str(),
         "SAAS_ACTIVATE_ACCOUNT_PATH": Str(),
@@ -93,7 +95,22 @@ schema = Map(
         "TELEGRAM_CHAT_ID": Str(),
         "TELEGRAM_PYTHON_LOG_LEVEL": Str(),
         "TEST_SHOP_OWNER_EMAIL_ISSUE_704": Email(),
+        "TEST_SUBSCRIBER_EMAIL_USER": Email(),
         "TEST_SHOP_OWNER_LOGIN_URL": Url(),
+        "EMAIL_SEARCH_API_HOST": Str(),  # Example: "email-search-api.example.com"
+        "IMAP_SEARCH_UNSEEN": Str(),  # Example: "1"
+        "IMAP_SEARCH_SINCE_DATE": Str(),  # Example: "21-Aug-2024"
+        "PLAYWRIGHT_HEADLESS": Bool(),
+        "PLAYWRIGHT_SLOWMO": Int(),
+        "PLAYWRIGHT_MAX_RETRIES": Int(),
+        "RESET_PASSWORD_IMAP_SEARCH_SUBJECT": Str(),  # Example: "Password Reset"
+        "SHOP_OWNER_EMAIL_HOST": Str(),
+        "SHOP_OWNER_EMAIL_USER": Email(),
+        "SHOP_OWNER_MAGIC_LOGIN_IMAP_SEARCH_SUBJECT": Str(),  # "Subscribie Magic Login"
+        "SHOP_OWNER_EMAIL_PASSWORD": Str(),
+        "SUBSCRIBER_EMAIL_HOST": Str(),
+        "SUBSCRIBER_EMAIL_USER": Email(),
+        "SUBSCRIBER_EMAIL_PASSWORD": Str(),
     }
 )
 
@@ -218,14 +235,14 @@ async def deploy(request):
         # Build envSettings vars
         envSettings = EnvSettings()
         envSettings["FLASK_ENV"] = os.getenv("FLASK_ENV")
-        envSettings["PERMANENT_SESSION_LIFETIME"] = os.getenv(
-            "PERMANENT_SESSION_LIFETIME"
-        )
         envSettings["SENTRY_SDK_DSN"] = os.getenv(
             "SENTRY_SDK_DSN"
         )
         envSettings["SENTRY_SDK_SESSION_REPLAY_ID"] = os.getenv(
             "SENTRY_SDK_SESSION_REPLAY_ID"
+        )
+        envSettings["PERMANENT_SESSION_LIFETIME"] = os.getenv(
+            "PERMANENT_SESSION_LIFETIME"
         )
         envSettings[
             "SUBSCRIBIE_REPO_DIRECTORY"
@@ -346,12 +363,21 @@ async def deploy(request):
             "TEST_SHOP_OWNER_LOGIN_URL"
         )  # noqa: E501
 
-        envSettings["THEME_NAME"] = os.getenv("THEME_NAME")  # noqa: E501
+        envSettings["THEME_NAME"] = os.getenv("THEME_NAME")  # noqa: e501
+        additional_settings = ['EMAIL_SEARCH_API_HOST', 'IMAP_SEARCH_SINCE_DATE', 'IMAP_SEARCH_UNSEEN', 'PLAYWRIGHT_MAX_RETRIES', 'PLAYWRIGHT_SLOWMO', 'RESET_PASSWORD_IMAP_SEARCH_SUBJECT', 'SHOP_OWNER_EMAIL_HOST', 'SHOP_OWNER_EMAIL_PASSWORD', 'SHOP_OWNER_EMAIL_USER', 'SHOP_OWNER_MAGIC_LOGIN_IMAP_SEARCH_SUBJECT', 'SUBSCRIBER_EMAIL_HOST', 'SUBSCRIBER_EMAIL_PASSWORD', 'SUBSCRIBER_EMAIL_USER', 'TEST_SUBSCRIBER_EMAIL_USER']
+
+        for additional_setting in additional_settings:
+            if os.getenv(additional_setting) == 'None':
+                print(f"{additional_setting} is None. exiting")
+            envSettings[additional_setting] = os.getenv(additional_setting)  # noqa: E501
+
+
 
         newShopSettings = as_document(envSettings)
         # Attempt to validate new Shop schema
         try:
             shopSettings = load(newShopSettings.as_yaml(), schema)
+            print("shopSettings validated")
         except YAMLError as error:
             logging.error(error)
             exit(1)
